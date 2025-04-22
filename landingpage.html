@@ -1,10 +1,62 @@
 <!DOCTYPE html>
 <html lang="en-AU">
 <head>
-    <title>Meter: Hello!</title>
+    <meta charset="UTF-8">
+    <meta viewport="width=device-width, initial-scale=1.0">
+    <title>Meter: Hello!</title> <!-- TODO: Temporary internal CSS placeholder before stylesheet made-->
+    <style> 
+        .section{ /* empty ruleset until style figured out*/
+            
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to Meter</h1>
-    <h4>See how your electricity, water, and other bills stack up against past months, and similar households--so you never overpay again</h4>
+    <div class="container"> <!--big div that covers everything in the page-->
+        <div class="section"> <!--small div for top bracket-->
+        </div>
+
+        <div> <!--Welcome section-->
+            <!--Needs main headline, subheading text, log in and sign up buttons-->
+            <h1>Weclome to Meter!</h1>
+            <p>See how your electricity, water, and other bills stack up against past
+                months and similar households-so you never overpay again.
+            </p>
+            <a>Log In</a> <!--TODO:-->
+            <a>Sign Up</a> <!--TODO: slightly lighter shade of grey for sign up than log in-->
+        </div> 
+
+        <hr>
+
+        <div class="section"><!--How it Works-->
+            <h2>How It Works</h2>
+            <div class="feature-box"> <!--upload a bill-->
+                <h3>Upload a Bill</h3>
+                <p>Upload a PDF of your bill</p>
+                <img> <!--TODO: sample image1-->
+            </div>
+            <div class="feature-box"> <!--get insights-->
+                <h3>Get Insights</h3>
+                <p>View breakdowns by cost, usage, and trends</p>
+                <img> <!--TODO: sample image2-->
+            </div>
+            <div class="feature-box"> <!--share to your household-->
+                <h3>Share to Your Household!</h3>
+                <p>Share with household members or export reports</p>
+                <img> <!--TODO: sample image3-->
+            </div>
+
+            <hr> 
+        </div>
+
+        <hr>
+
+        <div class="section"> <!-- See a Sample Report-->
+            <h2>See a Sample Report</h2>
+            <p>
+                <img> <!--TODO: sample image4: putting inside <p> puts it right of paragraph text?-->
+                TODO: funny lyrical poem here</p>
+        </div>
+    </div>
+    <button class="scroll-up-btn" id="scrollTopBtn">&#8593;</button> <!-- Unicode upwards arrow, maybe padded centered image instead? -->
 </body>
 </html>
