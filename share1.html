@@ -6,8 +6,10 @@
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="max-w-2xl mx-auto p-4 bg-white shadow mt-6 rounded-lg">
+
+        <!-- Header -->
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold">Meter</h1>
+            <h1 class="text-3xl font-extrabold">Meter</h1>
             <div class="space-x-2">
                 <button class="bg-black text-white px-3 py-1 rounded">Bill History</button>
                 <button class="bg-black text-white px-3 py-1 rounded">Family</button>
@@ -15,21 +17,29 @@
             </div>
         </div>
 
-        <img src="{{ url_for('static', filename='images/report-preview.jpg') }}" alt="Report Preview" class="rounded w-full mb-4">
+        <!-- Report Title -->
+        <h2 class="text-sm font-semibold text-gray-700 mb-0.5">January’s Report</h2>
 
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Share</h2>
-            <div class="space-x-2">
-                <button title="Copy Link" class="text-sm">🔗</button>
-                <button title="Email">📧</button>
-            </div>
+        <!-- Report Preview -->
+        <div class="mb-1">
+            <img src="{{ url_for('static', filename='images/report-preview.jpg') }}" alt="Report Preview" class="rounded w-full">
         </div>
 
-        <form action="/share-data" method="POST" class="space-y-4">
-            <!-- FAMILY SHARE -->
-            <label class="flex items-center justify-between border-2 border-blue-500 rounded-lg p-3 bg-black text-white cursor-pointer">
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-2 mb-6">
+            <button title="Copy Link" class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800 text-sm">Copy link</button>
+            <button title="Email" class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800 text-sm">Email</button>
+        </div>
+
+        <!-- Share Section -->
+        <h2 class="text-xl font-semibold mb-4">Share</h2>
+
+        <form action="/share-data" method="POST" class="space-y-4 mt-6">
+
+            <!-- Family Group -->
+            <label class="flex items-center justify-between border-2 border-blue-500 rounded-lg p-4 bg-black text-white cursor-pointer hover:shadow transition">
                 <div class="flex items-center">
-                    <input type="checkbox" name="share_to" value="family" class="mr-3 w-5 h-5">
+                    <input type="checkbox" name="share_to" value="family" class="mr-3 w-5 h-5 accent-blue-500">
                     <div>
                         <p class="font-semibold">Family</p>
                         <p class="text-sm text-gray-300">Share to everyone in the household</p>
@@ -42,7 +52,7 @@
                 </div>
             </label>
 
-            <!-- INDIVIDUALS -->
+            <!-- Individual Members -->
             {% for name, avatar in users %}
             <label class="flex items-center justify-between bg-gray-200 rounded-lg p-3">
                 <div class="flex items-center">
@@ -53,7 +63,23 @@
             </label>
             {% endfor %}
 
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mt-4">Share Now</button>
+            <!-- Footer -->
+            <div class="flex justify-between items-end mt-10">
+                <div class="text-left">
+                    <p class="text-xl font-bold">Meter</p>
+                    <div class="flex space-x-2 text-gray-600 mt-1 text-sm">
+                        <a href="#"><span class="hover:text-black">🌐</span></a>
+                        <a href="#"><span class="hover:text-black">💼</span></a>
+                        <a href="#"><span class="hover:text-black">▶️</span></a>
+                        <a href="#"><span class="hover:text-black">📸</span></a>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="bg-black text-white px-5 py-2 rounded hover:bg-gray-800">
+                    Share
+                </button>
+            </div>
         </form>
     </div>
 </body>
