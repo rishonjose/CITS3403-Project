@@ -2,118 +2,116 @@
 <html lang="en-AU">
 <head>
     <meta charset="UTF-8">
-    <meta viewport="width=device-width, initial-scale=1.0">
-    <title>Meter: Hello!</title> <!-- TODO: Temporary internal CSS placeholder before stylesheet made-->
-    <style> 
-        .section{ /* empty ruleset until style figured out*/
-            
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meter: Hello!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container"> <!--big div that covers everything in the page-->
-        <div class="section"> <!--small div for top bracket-->
+<body class="bg-gray-100 font-sans">
+    <div class="max-w-4xl mx-auto p-6 bg-white shadow mt-6 rounded-lg">
+        <!-- Top Navigation Bar -->
+        <div class="flex justify-between items-center mb-8">
+            <h1>Meter</h1>
+            <div class="space-x-2">
+                <button>My Profile</button>
+            </div>
         </div>
 
-        <div> <!--Welcome section-->
-            <!--Needs main headline, subheading text, log in and sign up buttons-->
-            <h1>Weclome to Meter!</h1>
-            <p>See how your electricity, water, and other bills stack up against past
-                months and similar households-so you never overpay again.
-            </p>
-            <a>Log In</a> <!--TODO:-->
-            <a>Sign Up</a> <!--TODO: slightly lighter shade of grey for sign up than log in-->
-        </div> 
+        <!-- Welcome section -->
+        <div class="text-center mb-12">
+            <h1>Welcome to Meter</h1>
+            <p>Description text</p>
+            <div class="space-x-4">
+                <button>Log In</button>
+                <button>Sign Up</button>
+            </div>
+        </div>
 
-        <hr>
+        <hr class="my-8">
 
-        <div class="section"><!--How it Works-->
+        <!-- How It Works section -->
+        <div class="mb-12">
             <h2>How It Works</h2>
-            <div class="feature-box"> <!--upload a bill-->
-                <h3>Upload a Bill</h3>
-                <p>Upload a PDF of your bill</p>
-                <img> <!--TODO: sample image1-->
+            <div class="flex justify-between">
+                <div>Feature 1</div>
+                <div>Feature 2</div>
+                <div>Feature 3</div>
             </div>
-            <div class="feature-box"> <!--get insights-->
-                <h3>Get Insights</h3>
-                <p>View breakdowns by cost, usage, and trends</p>
-                <img> <!--TODO: sample image2-->
-            </div>
-            <div class="feature-box"> <!--share to your household-->
-                <h3>Share to Your Household!</h3>
-                <p>Share with household members or export reports</p>
-                <img> <!--TODO: sample image3-->
-            </div>
-
-            <hr> 
         </div>
 
-        <hr>
+        <hr class="my-8">
 
-        <div class="section"> <!-- See a Sample Report-->
+        <!-- Sample Report section -->
+        <div class="mb-12">
             <h2>See a Sample Report</h2>
-            <p>
-                <img> <!--TODO: sample image4: putting inside <p> puts it right of paragraph text?-->
-                funny lyrical poem here</p>
-        </div>
-
-        <div class="section"> <!--more examples-->
-            <div> <!--Example of Share data page-->
-                <a></a> <!--TODO: image here-->
-                Share Your Bill Analytics with Specified Members!
+            <div class="poem">
+                <p>Sample content</p>
             </div>
-            <div> <!--Example of Announcements data page-->
-                <a></a> <!--TODO: image here-->
-                Let Your Household Members Know About The Bills!
+            <div class="text-center">
+                <button>Action Button</button>
             </div>
         </div>
 
-        <hr>
+        <hr class="my-8">
 
-        <div class="section"> <!-- carousel of user reviews-->
-            <div class="image-carousel">
-                <ul class="slides">
-                    <li>
-                        <img src="user-review1.jpg" alt="User Review 1"><!--TODO: screenshot of user review--> 
-                    </li>
-                    <li>
-                        <img src="user-review2.jpg" alt="User Review 2"><!--TODO:-->
-                    </li>
-                    <li>
-                        <img src="user-review3.jpg" alt="User Review 3"> <!--TODO:-->
-                    </li>
-                </ul>
+        <!-- More Examples section -->
+        <div class="mb-12">
+            <h2>More Examples</h2>
+            <div class="flex justify-between">
+                <div>Example 1</div>
+                <div>Example 2</div>
             </div>
         </div>
 
-        <hr>
-         <!-- Unicode upwards arrow, maybe padded centered image instead? -->
-        <div>
-            <button class="scroll-up-btn" id="scrollTopBtn">&#8593;</button> 
-        </div>
-        <hr>
+        <hr class="my-8">
 
-        <footer> <!--page footer, some are hyperlinks, uses table with transparent/same colour lines as background-->
-            <table>
+        <!-- User Reviews section -->
+        <div class="mb-12">
+            <h2>User Reviews</h2>
+            <div class="space-y-4">
+                <div>Review 1</div>
+                <div>Review 2</div>
+                <div>Review 3</div>
+            </div>
+        </div>
+
+        <hr class="my-8">
+
+        <!-- Back to Top button -->
+        <div class="text-center mb-8">
+            <button>Back to Top</button>
+        </div>
+
+        <hr class="my-8">
+
+        <!-- Footer -->
+        <footer class="mt-12">
+            <table class="w-full">
                 <tr>
                     <th>Meter</th>
-                    <th>Accounts and policies</th> <!--each of these hyperlinks to new page/doc maybe?-->
+                    <th>Accounts and Policies</th>
+                    <th>Topic</th>
+                    <th>Topic</th>
                 </tr>
                 <tr>
                     <td></td>
                     <td>My Account</td>
+                    <td>Page</td>
+                    <td>Page</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td>Privacy Policy</td>
+                    <td>Page</td>
+                    <td>Page</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td>User Agreement</td>
+                    <td>Page</td>
+                    <td>Page</td>
                 </tr>
             </table>
         </footer>
     </div>
-    <script></script> <!--internal script for scrollTopBtn-->
 </body>
 </html>
