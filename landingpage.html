@@ -5,24 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meter: Hello!</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles that aren't covered by Tailwind */
+        .poem p {
+            margin: 5px 0;
+        }
+        .feature-box {
+            display: inline-block;
+            width: 30%;
+            vertical-align: top;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="max-w-4xl mx-auto p-6 bg-white shadow mt-6 rounded-lg">
         <!-- Top Navigation Bar -->
         <div class="flex justify-between items-center mb-8">
-            <h1>Meter</h1>
+            <h1 class="text-3xl font-extrabold">Meter</h1>
             <div class="space-x-2">
-                <button>My Profile</button>
+                <button class="bg-black text-white px-3 py-1 rounded">My Profile</button>
             </div>
         </div>
 
         <!-- Welcome section -->
         <div class="text-center mb-12">
-            <h1>Welcome to Meter</h1>
-            <p>Description text</p>
+            <h1 class="text-3xl font-extrabold mb-4">Welcome to Meter</h1>
+            <p class="text-lg mb-6">See how your electricity, water, and other bills stack up against past
+                months, and similar households—so you never overpay again</p>
             <div class="space-x-4">
-                <button>Log In</button>
-                <button>Sign Up</button>
+                <button class="bg-black text-white px-4 py-2 rounded">Log In</button>
+                <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Sign Up</button>
             </div>
         </div>
 
@@ -30,11 +44,23 @@
 
         <!-- How It Works section -->
         <div class="mb-12">
-            <h2>How It Works</h2>
+            <h2 class="text-2xl font-bold mb-6">How It Works</h2>
             <div class="flex justify-between">
-                <div>Feature 1</div>
-                <div>Feature 2</div>
-                <div>Feature 3</div>
+                <div class="feature-box">
+                    <h3 class="text-xl font-semibold mb-3">Upload a Bill</h3>
+                    <p class="mb-4">Snap a photo, drag a PDF or forward an email</p>
+                    <div class="h-32 bg-gray-200 rounded"></div>
+                </div>
+                <div class="feature-box">
+                    <h3 class="text-xl font-semibold mb-3">Get Insights</h3>
+                    <p class="mb-4">View breakdowns by cost, usage, and trends</p>
+                    <div class="h-32 bg-gray-200 rounded"></div>
+                </div>
+                <div class="feature-box">
+                    <h3 class="text-xl font-semibold mb-3">Share with your Household!</h3>
+                    <p class="mb-4">Share with household members or export reports</p>
+                    <div class="h-32 bg-gray-200 rounded"></div>
+                </div>
             </div>
         </div>
 
@@ -42,12 +68,20 @@
 
         <!-- Sample Report section -->
         <div class="mb-12">
-            <h2>See a Sample Report</h2>
-            <div class="poem">
-                <p>Sample content</p>
+            <h2 class="text-2xl font-bold mb-6">See a Sample Report</h2>
+            <div class="poem italic mb-6">
+                <p><strong>Jerry wants to compare his WiFi Bills</strong><br>
+                So he uploads with a click—no frills</p>
+                
+                <p><strong>The graphs shine bright, clear, and tall,</strong><br>
+                showing spikes in spring, dips in fall.</p>
+                
+                <p><strong>He shares the report with his housemates</strong><br>
+                And everyone pays fair - no debates.</p>
             </div>
+            
             <div class="text-center">
-                <button>Action Button</button>
+                <button class="bg-black text-white px-4 py-2 rounded">Make Your Own Now</button>
             </div>
         </div>
 
@@ -55,10 +89,18 @@
 
         <!-- More Examples section -->
         <div class="mb-12">
-            <h2>More Examples</h2>
+            <h2 class="text-2xl font-bold mb-6">More Examples</h2>
             <div class="flex justify-between">
-                <div>Example 1</div>
-                <div>Example 2</div>
+                <div class="w-1/2 pr-4">
+                    <h3 class="text-lg font-semibold mb-2">Sample Image of Share Data Page</h3>
+                    <p class="mb-3">Example of Share Data Page</p>
+                    <div class="h-48 bg-gray-200 rounded"></div>
+                </div>
+                <div class="w-1/2 pl-4">
+                    <h3 class="text-lg font-semibold mb-2">Sample Image of Announcements Page</h3>
+                    <p class="mb-3">Example image of an announcements page.</p>
+                    <div class="h-48 bg-gray-200 rounded"></div>
+                </div>
             </div>
         </div>
 
@@ -66,11 +108,23 @@
 
         <!-- User Reviews section -->
         <div class="mb-12">
-            <h2>User Reviews</h2>
+            <h2 class="text-2xl font-bold mb-6">User Reviews</h2>
             <div class="space-y-4">
-                <div>Review 1</div>
-                <div>Review 2</div>
-                <div>Review 3</div>
+                <div class="border border-gray-200 p-4 rounded">
+                    <p class="font-semibold">"A terrific piece of praise"</p>
+                    <p class="font-medium mt-1">Name</p>
+                    <p class="text-sm">Description</p>
+                </div>
+                <div class="border border-gray-200 p-4 rounded">
+                    <p class="font-semibold">"A fantastic bit of feedback"</p>
+                    <p class="font-medium mt-1">Name</p>
+                    <p class="text-sm">Description</p>
+                </div>
+                <div class="border border-gray-200 p-4 rounded">
+                    <p class="font-semibold">"A genuinely glowing review"</p>
+                    <p class="font-medium mt-1">Name</p>
+                    <p class="text-sm">Description</p>
+                </div>
             </div>
         </div>
 
@@ -78,7 +132,7 @@
 
         <!-- Back to Top button -->
         <div class="text-center mb-8">
-            <button>Back to Top</button>
+            <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Back to Top</button>
         </div>
 
         <hr class="my-8">
@@ -87,31 +141,33 @@
         <footer class="mt-12">
             <table class="w-full">
                 <tr>
-                    <th>Meter</th>
-                    <th>Accounts and Policies</th>
-                    <th>Topic</th>
-                    <th>Topic</th>
+                    <th class="text-left py-2">Meter</th>
+                    <th class="text-left py-2">Accounts and Policies</th>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td>My Account</td>
-                    <td>Page</td>
-                    <td>Page</td>
+                    <td class="py-2"></td>
+                    <td class="py-2">My Account</td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td>Privacy Policy</td>
-                    <td>Page</td>
-                    <td>Page</td>
+                    <td class="py-2"></td>
+                    <td class="py-2">Privacy Policy</td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td>User Agreement</td>
-                    <td>Page</td>
-                    <td>Page</td>
+                    <td class="py-2"></td>
+                    <td class="py-2">User Agreement</td>
                 </tr>
             </table>
         </footer>
     </div>
+
+    <script>
+        // Scroll to top button functionality - no need for external just internal is fine
+        document.querySelector('.scroll-up-btn').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
 </body>
 </html>
