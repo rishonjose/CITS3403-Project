@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Meter — Upload Your Data</title>
+  <style>
+    :root {
+      --brand-beige: #BDB8AA;
+      --brand-black: #000;
+      --brand-white: #fff;
+      --gap: 1rem;
+      --radius: 6px;
+      --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      color: #333;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+    }
+
+    /* ========== HEADER / HERO ========== */
+    header.hero {
+      position: relative;
+      background: url('hero-bg.jpg') center/cover no-repeat;
+      color: var(--brand-white);
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+    header.hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+    }
+    header.hero nav {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1024px;
+      margin: 0 auto 2rem;
+    }
+    header.hero nav .logo {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+    header.hero nav .account-btn {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+    }
+    header.hero .hero-content {
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    header.hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    header.hero p {
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--brand-black);
+      color: var(--brand-white);
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--radius);
+      font-weight: bold;
+    }
+
+    /* ========== MANUAL ENTRY SECTION ========== */
+    main {
+      padding: 2rem 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .manual-entry h2 {
+      font-size: 1.75rem;
+      margin-bottom: 0.25rem;
+    }
+    .manual-entry .subtitle {
+      margin-bottom: 1.5rem;
+      color: #666;
+    }
+    .tabs {
+      display: flex;
+      gap: var(--gap);
+      margin-bottom: 2rem;
+    }
+    .tabs button {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--brand-black);
+      color: var(--brand-white);
+      border-radius: var(--radius);
+      font-weight: bold;
+    }
+    .tabs button.active {
+      background: var(--brand-beige);
+      color: var(--brand-black);
+    }
+
+    .data-form {
+      display: grid;
+      gap: 1.25rem;
+    }
+    .form-group {
+      display: flex;
+      align-items: center;
+      background: var(--brand-beige);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+    }
+    .form-group img {
+      width: 24px;
+      height: 24px;
+      margin-right: 0.75rem;
+    }
+    .form-group input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      color: #333;
+      outline: none;
+    }
+    .form-group input::placeholder {
+      color: #000000;
+    }
+    .form-group input[type="date"] {
+      cursor: pointer;
+    }
+
+    /* ========== FOOTER ========== */
+    footer {
+      margin-top: 3rem;
+      padding: 2rem 1rem;
+      border-top: 1px solid #eee;
+      max-width: 1024px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    .footer-logo {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+    .footer-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1.5rem;
+    }
+    .footer-links h4 {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      color: #555;
+    }
+    .footer-links ul {
+      list-style: none;
+    }
+    .footer-links li {
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+    }
+    .social {
+      display: flex;
+      gap: 1rem;
+    }
+    .social a {
+      width: 24px;
+      height: 24px;
+      display: inline-block;
+      background-size: cover;
+    }
+    .social .fb {
+      background-image: url('fb.svg');
+    }
+    .social .linkedin {
+      background-image: url('linkedin.svg');
+    }
+    .social .yt {
+      background-image: url('youtube.svg');
+    }
+    .social .ig {
+      background-image: url('instagram.svg');
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER / HERO -->
+  <header class="hero">
+    <nav>
+      <div class="logo">Meter</div>
+      <a href="#" class="account-btn">My Account</a>
+    </nav>
+    <div class="hero-content">
+      <h1>Upload Your Data Here</h1>
+      <p>Subheading that sets up context, shares more info about the author, or generally gets people psyched to keep reading.</p>
+      <a href="#" class="btn">Button</a>
+    </div>
+  </header>
+
+  <!-- MANUAL ENTRY -->
+  <main>
+    <section class="manual-entry">
+      <h2>Or enter them manually here</h2>
+      <p class="subtitle">A subheading for this section, as long or as short as you like</p>
+
+      <div class="tabs">
+        <button class="active">Electricity</button>
+        <button>Water</button>
+        <button>Gas</button>
+        <button>WiFi</button>
+        <button>Other</button>
+      </div>
+
+      <form class="data-form">
+        <div class="form-group">
+          <img src="energy-icon.svg" alt="Energy icon" />
+          <input
+            id="energy"
+            type="text"
+            placeholder="Energy Consumed"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <img src="cost-icon.svg" alt="Cost icon" />
+          <input
+            id="cost"
+            type="text"
+            placeholder="Cost per kWh"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <img src="start-icon.svg" alt="Start date icon" />
+          <input
+            id="start-date"
+            type="date"
+            placeholder="Start date of billing cycle"
+          />
+        </div>
+
+        <div class="form-group">
+          <img src="end-icon.svg" alt="End date icon" />
+          <input
+            id="end-date"
+            type="date"
+            placeholder="End date of billing cycle"
+          />
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-top">
+      <div class="footer-logo">Meter</div>
+      <div class="footer-links">
+        <div>
+          <h4>Topic</h4>
+          <ul>
+            <li>Page</li>
+            <li>Page</li>
+            <li>Page</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Topic</h4>
+          <ul>
+            <li>Page</li>
+            <li>Page</li>
+            <li>Page</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Topic</h4>
+          <ul>
+            <li>Page</li>
+            <li>Page</li>
+            <li>Page</li>
+          </ul>
+        </div>
+      </div>
+      <div class="social">
+        <a href="#" class="fb"    aria-label="Facebook"></a>
+        <a href="#" class="linkedin" aria-label="LinkedIn"></a>
+        <a href="#" class="yt"    aria-label="YouTube"></a>
+        <a href="#" class="ig"    aria-label="Instagram"></a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // highlight tabs
+    const tabs = document.querySelectorAll('.tabs button');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
