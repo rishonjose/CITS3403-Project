@@ -28,9 +28,10 @@
       text-decoration: none;
       color: inherit;
     }
-    button {
+    button, .btn, .file-btn {
       cursor: pointer;
       border: none;
+      font-weight: bold;
     }
 
     /* ========== HEADER / HERO ========== */
@@ -60,9 +61,11 @@
       font-weight: bold;
     }
     header.hero nav .account-btn {
-      background: rgba(255, 255, 255, 0.2);
+      background: transparent;
+      border: 1px solid var(--brand-white);
       padding: 0.5rem 1rem;
       border-radius: var(--radius);
+      color: var(--brand-white);
     }
     header.hero .hero-content {
       position: relative;
@@ -83,7 +86,25 @@
       color: var(--brand-white);
       padding: 0.75rem 1.5rem;
       border-radius: var(--radius);
-      font-weight: bold;
+    }
+
+    /* File-input-as-button styling */
+    .file-btn {
+      position: relative;
+      display: inline-block;
+      background: var(--brand-black);
+      color: var(--brand-white);
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+    .file-btn input[type="file"] {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
     }
 
     /* ========== MANUAL ENTRY SECTION ========== */
@@ -106,12 +127,11 @@
       margin-bottom: 2rem;
     }
     .tabs button {
-      flex: 1;
+      flex: none;
       padding: 0.75rem;
       background: var(--brand-black);
       color: var(--brand-white);
       border-radius: var(--radius);
-      font-weight: bold;
     }
     .tabs button.active {
       background: var(--brand-beige);
@@ -143,10 +163,14 @@
       outline: none;
     }
     .form-group input::placeholder {
-      color: #000000;
+      color: #000;
     }
     .form-group input[type="date"] {
       cursor: pointer;
+    }
+    .btn.submit {
+      display: block;
+      margin: 2rem auto 0;
     }
 
     /* ========== FOOTER ========== */
@@ -197,18 +221,10 @@
       display: inline-block;
       background-size: cover;
     }
-    .social .fb {
-      background-image: url('fb.svg');
-    }
-    .social .linkedin {
-      background-image: url('linkedin.svg');
-    }
-    .social .yt {
-      background-image: url('youtube.svg');
-    }
-    .social .ig {
-      background-image: url('instagram.svg');
-    }
+    .social .fb { background-image: url('fb.svg'); }
+    .social .linkedin { background-image: url('linkedin.svg'); }
+    .social .yt { background-image: url('youtube.svg'); }
+    .social .ig { background-image: url('instagram.svg'); }
   </style>
 </head>
 <body>
@@ -221,8 +237,11 @@
     </nav>
     <div class="hero-content">
       <h1>Upload Your Data Here</h1>
-      <p>Subheading that sets up context, shares more info about the author, or generally gets people psyched to keep reading.</p>
-      <a href="#" class="btn">Button</a>
+      <p>Subheading that gets people psyched to keep reading.</p>
+      <label class="file-btn">
+        Choose PDF
+        <input type="file" accept="application/pdf" />
+      </label>
     </div>
   </header>
 
@@ -233,18 +252,18 @@
       <p class="subtitle">A subheading for this section, as long or as short as you like</p>
 
       <div class="tabs">
-        <button class="active">Electricity</button>
-        <button>Water</button>
-        <button>Gas</button>
-        <button>WiFi</button>
-        <button>Other</button>
+        <button class="active" data-type="Electricity">Electricity</button>
+        <button data-type="Water">Water</button>
+        <button data-type="Gas">Gas</button>
+        <button data-type="WiFi">WiFi</button>
+        <button data-type="Other">Other</button>
       </div>
 
       <form class="data-form">
         <div class="form-group">
-          <img src="energy-icon.svg" alt="Energy icon" />
+          <img src="energy-icon.svg" alt="Icon" />
           <input
-            id="energy"
+            id="field-one"
             type="text"
             placeholder="Energy Consumed"
             autocomplete="off"
@@ -252,9 +271,9 @@
         </div>
 
         <div class="form-group">
-          <img src="cost-icon.svg" alt="Cost icon" />
+          <img src="cost-icon.svg" alt="Icon" />
           <input
-            id="cost"
+            id="field-two"
             type="text"
             placeholder="Cost per kWh"
             autocomplete="off"
@@ -262,7 +281,7 @@
         </div>
 
         <div class="form-group">
-          <img src="start-icon.svg" alt="Start date icon" />
+          <img src="start-icon.svg" alt="Icon" />
           <input
             id="start-date"
             type="date"
@@ -271,13 +290,15 @@
         </div>
 
         <div class="form-group">
-          <img src="end-icon.svg" alt="End date icon" />
+          <img src="end-icon.svg" alt="Icon" />
           <input
             id="end-date"
             type="date"
             placeholder="End date of billing cycle"
           />
         </div>
+
+        <button type="submit" class="btn submit">Submit Details</button>
       </form>
     </section>
   </main>
@@ -289,45 +310,48 @@
       <div class="footer-links">
         <div>
           <h4>Topic</h4>
-          <ul>
-            <li>Page</li>
-            <li>Page</li>
-            <li>Page</li>
-          </ul>
+          <ul><li>Page</li><li>Page</li><li>Page</li></ul>
         </div>
         <div>
           <h4>Topic</h4>
-          <ul>
-            <li>Page</li>
-            <li>Page</li>
-            <li>Page</li>
-          </ul>
+          <ul><li>Page</li><li>Page</li><li>Page</li></ul>
         </div>
         <div>
           <h4>Topic</h4>
-          <ul>
-            <li>Page</li>
-            <li>Page</li>
-            <li>Page</li>
-          </ul>
+          <ul><li>Page</li><li>Page</li><li>Page</li></ul>
         </div>
       </div>
       <div class="social">
-        <a href="#" class="fb"    aria-label="Facebook"></a>
+        <a href="#" class="fb" aria-label="Facebook"></a>
         <a href="#" class="linkedin" aria-label="LinkedIn"></a>
-        <a href="#" class="yt"    aria-label="YouTube"></a>
-        <a href="#" class="ig"    aria-label="Instagram"></a>
+        <a href="#" class="yt" aria-label="YouTube"></a>
+        <a href="#" class="ig" aria-label="Instagram"></a>
       </div>
     </div>
   </footer>
 
   <script>
-    // highlight tabs
-    const tabs = document.querySelectorAll('.tabs button');
+    const tabs       = document.querySelectorAll('.tabs button');
+    const fieldOne   = document.getElementById('field-one');
+    const fieldTwo   = document.getElementById('field-two');
+
+    const placeholderMap = {
+      Electricity: ['Energy Consumed',       'Cost per kWh'],
+      Water:       ['Units of Water Consumed','Cost per Unit'],
+      Gas:         ['Volume of Gas Consumed', 'Cost per Unit'],
+      WiFi:        ['Data Used (GB)',         'Cost per GB'],
+      Other:       ['Units Consumed',         'Cost per Unit']
+    };
+
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
+
+        const type = tab.dataset.type;
+        const [one, two] = placeholderMap[type] || placeholderMap.Other;
+        fieldOne.placeholder = one;
+        fieldTwo.placeholder = two;
       });
     });
   </script>
