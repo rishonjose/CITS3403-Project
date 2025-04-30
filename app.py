@@ -2,6 +2,16 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
+# Homepage route
+@app.route("/")
+def home():
+    return render_template("landingpage.html")
+
+# Login/signup page
+@app.route("/login")
+def login():
+    return render_template("login-signup.html")
+
 @app.route("/share")
 def share_page():
     # List of people and their image filenames
