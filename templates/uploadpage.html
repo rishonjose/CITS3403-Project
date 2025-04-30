@@ -24,10 +24,6 @@
       line-height: 1.5;
       color: #333;
     }
-    a {
-      text-decoration: none;
-      color: inherit;
-    }
     button, .btn, .file-btn {
       cursor: pointer;
       border: none;
@@ -142,6 +138,15 @@
       display: grid;
       gap: 1.25rem;
     }
+
+    /* Style for form labels */
+    .form-group label {
+      margin-right: 0.75rem;
+      font-size: 1rem;
+      color: #000;
+      white-space: nowrap;
+    }
+
     .form-group {
       display: flex;
       align-items: center;
@@ -152,7 +157,7 @@
     .form-group img {
       width: 24px;
       height: 24px;
-      margin-right: 0.75rem;
+      margin-right: 0.5rem;
     }
     .form-group input {
       flex: 1;
@@ -168,9 +173,20 @@
     .form-group input[type="date"] {
       cursor: pointer;
     }
-    .btn.submit {
-      display: block;
-      margin: 2rem auto 0;
+
+    /* Disabled-looking submit */
+    .btn.submit.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Error message */
+    .error {
+      color: #c00;
+      font-size: 0.9rem;
+      margin-top: -1rem;
+      margin-bottom: 1rem;
+      display: none;
     }
 
     /* ========== FOOTER ========== */
@@ -201,8 +217,9 @@
     .footer-links h4 {
       margin-bottom: 0.5rem;
       font-size: 0.9rem;
+      font-weight: bold;
       text-transform: uppercase;
-      color: #555;
+      color: #000;
     }
     .footer-links ul {
       list-style: none;
@@ -260,45 +277,31 @@
       </div>
 
       <form class="data-form">
+        <div id="error-msg" class="error">Please fill in all fields before submitting.</div>
+
         <div class="form-group">
           <img src="energy-icon.svg" alt="Icon" />
-          <input
-            id="field-one"
-            type="text"
-            placeholder="Energy Consumed"
-            autocomplete="off"
-          />
+          <input id="field-one" type="text" placeholder="Energy Consumed" autocomplete="off" />
         </div>
 
         <div class="form-group">
           <img src="cost-icon.svg" alt="Icon" />
-          <input
-            id="field-two"
-            type="text"
-            placeholder="Cost per kWh"
-            autocomplete="off"
-          />
+          <input id="field-two" type="text" placeholder="Cost per kWh" autocomplete="off" />
         </div>
 
         <div class="form-group">
-          <img src="start-icon.svg" alt="Icon" />
-          <input
-            id="start-date"
-            type="date"
-            placeholder="Start date of billing cycle"
-          />
+          <img src="start-icon.svg" alt="Start icon" />
+          <label for="start-date">Start Date:</label>
+          <input id="start-date" type="date" />
         </div>
 
         <div class="form-group">
-          <img src="end-icon.svg" alt="Icon" />
-          <input
-            id="end-date"
-            type="date"
-            placeholder="End date of billing cycle"
-          />
+          <img src="end-icon.svg" alt="End icon" />
+          <label for="end-date">End Date:</label>
+          <input id="end-date" type="date" />
         </div>
 
-        <button type="submit" class="btn submit">Submit Details</button>
+        <button type="submit" class="btn submit disabled">Submit Details</button>
       </form>
     </section>
   </main>
@@ -309,16 +312,16 @@
       <div class="footer-logo">Meter</div>
       <div class="footer-links">
         <div>
-          <h4>Topic</h4>
-          <ul><li>Page</li><li>Page</li><li>Page</li></ul>
+          <h4>Accounts and Policies</h4>
         </div>
         <div>
-          <h4>Topic</h4>
-          <ul><li>Page</li><li>Page</li><li>Page</li></ul>
+          <ul><li>My Profile</li></ul>
         </div>
         <div>
-          <h4>Topic</h4>
-          <ul><li>Page</li><li>Page</li><li>Page</li></ul>
+          <ul><li>User Agreement</li></ul>
+        </div>
+        <div>
+          <ul><li>Privacy Policy</li></ul>
         </div>
       </div>
       <div class="social">
@@ -334,6 +337,10 @@
     const tabs       = document.querySelectorAll('.tabs button');
     const fieldOne   = document.getElementById('field-one');
     const fieldTwo   = document.getElementById('field-two');
+    const startDate  = document.getElementById('start-date');
+    const endDate    = document.getElementById('end-date');
+    const submitBtn  = document.querySelector('.btn.submit');
+    const errorMsg   = document.getElementById('error-msg');
 
     const placeholderMap = {
       Electricity: ['Energy Consumed',       'Cost per kWh'],
@@ -343,17 +350,46 @@
       Other:       ['Units Consumed',         'Cost per Unit']
     };
 
+    function updateSubmitState() {
+      const allFilled = fieldOne.value.trim() &&
+                        fieldTwo.value.trim() &&
+                        startDate.value &&
+                        endDate.value;
+      submitBtn.classList.toggle('disabled', !allFilled);
+      errorMsg.style.display = 'none';
+    }
+
+    // placeholder swap + active tab
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-
-        const type = tab.dataset.type;
-        const [one, two] = placeholderMap[type] || placeholderMap.Other;
+        const [one, two] = placeholderMap[tab.dataset.type];
         fieldOne.placeholder = one;
         fieldTwo.placeholder = two;
+        // reset fields on type change
+        fieldOne.value = '';
+        fieldTwo.value = '';
+        updateSubmitState();
       });
     });
+
+    // watch every input
+    [fieldOne, fieldTwo, startDate, endDate].forEach(el =>
+      el.addEventListener('input', updateSubmitState)
+    );
+
+    // final guard on click
+    submitBtn.addEventListener('click', e => {
+      if (submitBtn.classList.contains('disabled')) {
+        e.preventDefault();
+        errorMsg.style.display = 'block';
+      }
+      // else: form would submit normally
+    });
+
+    // init
+    updateSubmitState();
   </script>
 </body>
 </html>
