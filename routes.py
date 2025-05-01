@@ -13,6 +13,10 @@ def home():
 def login():
     return render_template("login-signup.html")
 
+@app.route("/profile")
+def profile():
+    return render_template("profile.html")
+
 @app.route("/share")
 def share_page():
     # List of people and their image filenames
