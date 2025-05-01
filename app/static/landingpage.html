@@ -20,7 +20,7 @@
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
-    <div class="max-w-4xl mx-auto p-6 bg-white shadow mt-6 rounded-lg">
+    <div class="p-6 mt-6">
         <!-- Top Navigation Bar -->
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-extrabold">Meter</h1>
@@ -30,13 +30,16 @@
         </div>
 
         <!-- Welcome section -->
-        <div class="text-center mb-12">
-            <h1 class="text-3xl font-extrabold mb-4">Welcome to Meter</h1>
-            <p class="text-lg mb-6">See how your electricity, water, and other bills stack up against past
-                months, and similar households—so you never overpay again</p>
-            <div class="space-x-4">
-                <button class="bg-black text-white px-4 py-2 rounded">Log In</button>
-                <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Sign Up</button>
+        <!-- Welcome section with background image -->
+        <div class="relative bg-cover bg-center py-16 my-12" style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('images/stack-of-bills-landing-page-header.jpg')">
+            <div class="container mx-auto px-4 text-center text-white">
+                <h1 class="text-3xl font-extrabold mb-4">Welcome to Meter</h1>
+                <p class="text-lg mb-6">See how your electricity, water, and other bills stack up against past
+                    months, and similar households—so you never overpay again</p>
+                <div class="space-x-4">
+                    <button class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">Log In</button>
+                    <button class="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-200 transition">Sign Up</button>
+                </div>
             </div>
         </div>
 
