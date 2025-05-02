@@ -1,12 +1,30 @@
-//Bill Overview Doughnut Chart
+// Test Input Data source
+const util_Data = {
+  util_labels: ['Electricity', 'Water', 'Gas', 'Wi-fi'], // Name of utilities
+  util_colours: ['orange', 'blue', 'green', 'violet'], // Colour of utilities 
+  month_labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'], // Months of utilities data
+  totalBill: [150, 175, 125, 155, 85],  // Total bill costs per month
+  electricity: [35, 32, 37, 30, 33], // electricity costs per month
+  water: [45, 60, 50, 40, 55], // water costs per month
+  gas: [30, 25, 20, 35, 30], // gas costs per month
+  wifi: [40, 58, 18, 50, 45] // Wi-fi costs per month
+};
+// Replace later with user data fetched from webpage database
+
+
+
+//Bill Overview Doughnut Chart: Most recent month data
 const pieCtx = document.getElementById('doughnut').getContext('2d');
 const pieChart = new Chart(pieCtx, {
   type: 'doughnut',
   data: {
-    labels: ['Electricity', 'Water', 'Gas', 'Wi-Fi'],
+    labels: util_Data.util_labels,
     datasets: [{
-      data: [45, 25, 15, 15],
-      backgroundColor: ['orange', 'blue', 'green', 'violet']
+      data: [(util_Data.electricity[util_Data.electricity.length -1]), // Data includes latest month utilites
+      (util_Data.water[util_Data.water.length -1]),
+      (util_Data.gas[util_Data.gas.length -1]),
+      (util_Data.wifi[util_Data.wifi.length -1])],
+      backgroundColor: util_Data.util_colours
     }],
   },
   options: {
