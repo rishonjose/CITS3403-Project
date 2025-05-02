@@ -43,15 +43,15 @@ const pieChart = new Chart(pieCtx, {
   }
 });
 
-//Bill Overview Line Chart
+//Bill Overview Line Chart: Total bill cost over each month
 const lineCtx = document.getElementById('lineChart').getContext('2d');
 const lineChart = new Chart(lineCtx, {
   type: 'line',
   data: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+    labels: util_Data.month_labels,
     datasets: [{
       label: 'Total Monthly Bill Cost',
-      data: [150, 175, 125, 155, 85],
+      data: util_Data.totalBill,
       borderColor: 'rgba(75, 192, 192, 1)',
       backgroundColor: 'rgba(75, 192, 192, 0.2)',
       fill: true
@@ -72,16 +72,19 @@ const lineChart = new Chart(lineCtx, {
   }
 });
 
-//Monthly Overview Bar Chart
+//Monthly Overview Bar Chart: Selected Month cost over each month
 const barCtx = document.getElementById('barChart').getContext('2d');
 const barChart = new Chart(barCtx, {
   type: 'bar',
   data: {
-    labels: ['Electricity', 'Water', 'Gas', 'Wi-Fi'],
+    labels: util_Data.util_labels,
     datasets: [{
       label: 'Costs by Utility',
-      data: [120, 60, 40, 75],
-      backgroundColor: ['orange', 'blue', 'green', 'violet']
+      data:[(util_Data.electricity[util_Data.electricity.length -1]), //latest month data: Replace with selected date data. 
+      (util_Data.water[util_Data.water.length -1]),
+      (util_Data.gas[util_Data.gas.length -1]),
+      (util_Data.wifi[util_Data.wifi.length -1])],
+      backgroundColor: util_Data.util_colours
     }]
   },
   options: {
@@ -130,11 +133,11 @@ const utilityCtx = document.getElementById('utilityChart').getContext('2d');
 const utilityChart = new Chart(utilityCtx, {
   type: 'line',
   data: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+    labels: util_Data.month_labels,
     datasets: [{
       label: 'Electrical Bill Cost',
-      data: [35, 32, 37, 30, 33],
-      borderColor: 'orange',
+      data: util_Data.electricity, //electricity utility data: Replace with selected utility data.
+      borderColor: util_Data.util_colours[0],
       backgroundColor: 'rgba(255,165,0,0.2)',
       fill: true
     }]
