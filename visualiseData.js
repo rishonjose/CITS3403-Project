@@ -128,7 +128,7 @@ monthSelect.addEventListener("change", () => {
   heading.innerHTML = `<b>${selectedMonth} Analytics</b>`;
 });
 
-//Utilities Analytics Table
+//Utilities Analytics Chart
 const utilityCtx = document.getElementById('utilityChart').getContext('2d');
 const utilityChart = new Chart(utilityCtx, {
   type: 'line',
@@ -168,3 +168,81 @@ function toggleUtilityView() {
     button.textContent = 'Switch to Table View';
   }
 }
+
+// Creates Monthly Table for the Monthly Overview Bar Chart
+function populatemonthlyTable() {
+  const tableThread = document.querySelector('#monthlyTable thead');
+  const tableBody = document.querySelector('#monthlyTable tbody');
+
+  // Clear previous <thead> content
+  tableThread.innerHTML = '';
+
+  // Build <thead>
+  const threadRow = document.createElement('tr');
+  threadRow.innerHTML = `
+    <th style="background-color: #f0f0f0;" >Utility</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.util_labels[0]}</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.util_labels[1]}</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.util_labels[2]}</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.util_labels[3]}</th>
+  `;
+  tableThread.appendChild(threadRow);
+
+  // Clear previous <tbody> content
+  tableBody.innerHTML = '';
+  const bodyRow = document.createElement('tr');
+
+  // Build <tbody>
+  bodyRow.innerHTML = `
+    <td style="background-color: #f0f0f0;"><b>Bill Cost<b></td>
+    <td>$${util_Data.electricity[util_Data.electricity.length -1]}</td>
+    <td>$${util_Data.water[util_Data.water.length -1]}</td>
+    <td>$${util_Data.gas[util_Data.gas.length -1]}</td>
+    <td>$${util_Data.wifi[util_Data.wifi.length -1]}</td>
+  `;
+
+  tableBody.appendChild(bodyRow);
+}
+
+// Creates Utility Table for the Utilities Analytics Chart
+function populateutilityTable() {
+  const tableThread = document.querySelector('#utilityTable thead');
+  const tableBody = document.querySelector('#utilityTable tbody');
+
+  // Clear previous <thead> content
+  tableThread.innerHTML = '';
+
+  // Build <thead>
+  const threadRow = document.createElement('tr');
+  threadRow.innerHTML = `
+    <th style="background-color: #f0f0f0;" >Month</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.month_labels[0]}</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.month_labels[1]}</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.month_labels[2]}</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.month_labels[3]}</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.month_labels[4]}</th>
+  `;
+  tableThread.appendChild(threadRow);
+
+  // Clear previous <tbody> content
+  tableBody.innerHTML = '';
+  const bodyRow = document.createElement('tr');
+
+  // Build <tbody>
+  bodyRow.innerHTML = `
+    <td style="background-color: #f0f0f0;"><b>Bill Cost<b></td>
+    <td>$${util_Data.electricity[0]}</td>
+    <td>$${util_Data.electricity[1]}</td>
+    <td>$${util_Data.electricity[2]}</td>
+    <td>$${util_Data.electricity[3]}</td>
+    <td>$${util_Data.electricity[4]}</td>
+  `;
+
+  tableBody.appendChild(bodyRow);
+}
+
+
+
+populatemonthlyTable();
+
+populateutilityTable();
