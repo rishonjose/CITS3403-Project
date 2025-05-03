@@ -35,7 +35,7 @@ const pieChart = new Chart(pieCtx, {
           label: function (context) {
             const label = context.label || '';
             const value = context.parsed;
-            return `${label}: ${value}%`;
+            return `${label}: $${value}`;
           }
         }
       }
@@ -126,7 +126,7 @@ const utilityChart = new Chart(utilityCtx, {
   data: {
     labels: util_Data.month_labels,
     datasets: [{
-      label: 'Electrical Bill Cost',
+      label: 'Total Bill Cost',
       data: util_Data.Electricity, //Electricity utility data: Replace with selected utility data.
       borderColor: util_Data.util_colours[0],
       backgroundColor: 'rgba(255,165,0,0.2)',
