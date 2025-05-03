@@ -2,7 +2,7 @@
 const util_Data = {
   util_labels: ['Electricity', 'Water', 'Gas', 'Wi-fi'], // Name of utilities
   util_colours: ['orange', 'blue', 'green', 'violet'], // Colour of utilities 
-  month_labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'], // Months of utilities data
+  month_labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025'], // Months of utilities data
   totalBill: [150, 175, 125, 155, 85],  // Total bill costs per month
   electricity: [35, 32, 37, 30, 33], // electricity costs per month
   water: [45, 60, 50, 40, 55], // water costs per month
@@ -169,6 +169,24 @@ function toggleUtilityView() {
   }
 }
 
+
+// Creates Month dropdown for the Monthly Overview
+function populateMonthDropdown() {
+  const select = document.getElementById('monthSelect');
+  select.innerHTML = ''; // Clear existing options
+
+  util_Data.month_labels.forEach((month, index) => {
+    const option = document.createElement('option');
+    option.value = month;
+    option.textContent = month;
+    if (index === util_Data.month_labels.length - 1) {
+      option.selected = true; // Default to most recent month
+    }
+    select.appendChild(option);
+  });
+}
+
+
 // Creates Monthly Table for the Monthly Overview Bar Chart
 function populatemonthlyTable() {
   const tableThread = document.querySelector('#monthlyTable thead');
@@ -203,6 +221,20 @@ function populatemonthlyTable() {
 
   tableBody.appendChild(bodyRow);
 }
+
+// Creates Utility dropdown for the Utility Analytics
+function populateUtilityDropdown() {
+  const select = document.getElementById('utilitySelect');
+  select.innerHTML = ''; // Clear existing options
+
+  util_Data.util_labels.forEach((util, index) => {
+    const option = document.createElement('option');
+    option.value = util;
+    option.textContent = util;
+    select.appendChild(option);
+  });
+}
+
 
 // Creates Utility Table for the Utilities Analytics Chart
 function populateutilityTable() {
@@ -241,8 +273,7 @@ function populateutilityTable() {
   tableBody.appendChild(bodyRow);
 }
 
-
-
+populateMonthDropdown();
 populatemonthlyTable();
-
+populateUtilityDropdown();
 populateutilityTable();
