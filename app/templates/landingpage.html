@@ -37,8 +37,8 @@
                 <p class="text-lg mb-6">See how your electricity, water, and other bills stack up against past
                     months, and similar households—so you never overpay again</p>
                 <div class="space-x-4">
-                    <button id="login-btn" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">Log In</button>
-                    <button id="signup-btn" class="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-200 transition">Sign Up</button>
+                    <button data-auth-redirect data-href="{{ url_for('login', form='login') }}" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">Log In</button>
+                    <button data-auth-redirect="signup" data-href="{{ url_for('login', form='signup') }}" class="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-200 transition">Sign Up</button>
                 </div>
             </div>
         </div>
@@ -84,7 +84,7 @@
             </div>
             
             <div class="text-center">
-                <button class="bg-black text-white px-4 py-2 rounded">Make Your Own Now</button>
+                <button data-auth-redirect data-href="{{ url_for('login', form='signup') }}" class="bg-black text-white px-4 py-2 rounded">Make Your Own Now</button>
             </div>
         </div>
 
@@ -188,15 +188,9 @@
         document.body.scrollTop = 0; // For Safari
         document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
         }
-        // Event listener for login and signup buttons that redirects to the login-signup page 
-        // with the appropriate form
-        document.getElementById('login-btn').addEventListener('click', () => {
-        window.location.href = "/login?form=login";  // Matches existing route
-        });
-
-        document.getElementById('signup-btn').addEventListener('click', () => {
-        window.location.href = "/login?form=signup";  // Same route but with signup param instead
-        });
     </script>
+
+    <!--use external js file for redirect-->
+    <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
 </body>
-</html>
+</html> 

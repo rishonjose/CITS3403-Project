@@ -99,7 +99,7 @@
     </div>
 
     <script>
-        // Simple tab switching (would be enhanced in production)
+        // Simple tab switching (TODO: to be enhanced for deployment e.g. using a library)
         document.getElementById('login-tab').addEventListener('click', function() {
             this.classList.add('border-black', 'text-black');
             this.classList.remove('text-gray-500');
@@ -119,12 +119,10 @@
         });
 
         // Button routing to respective tab/form
-        document.addEventListener('DOMContentLoaded', function() {
-        // Use Flask template variable first, fallback to URL param
-        const formType = "{{ form_type }}" || new URLSearchParams(window.location.search).get('form');
-        
-        if (formType === 'signup') {
-            document.getElementById('signup-tab').click();  // Programmatically click signup tab
+        document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('form') === 'signup') {
+            document.getElementById('signup-tab').click(); // Choose signup tab
         }
         });
     </script>
