@@ -1,13 +1,14 @@
 // Test Input Data source
 const util_Data = {
-  util_labels: ['Electricity', 'Water', 'Gas', 'Wifi'], // Name of utilities
-  util_colours: ['orange', 'blue', 'green', 'violet'], // Colour of utilities 
+  util_labels: ['Electricity', 'Water', 'Gas', 'Wifi', 'Other'], // Name of utilities
+  util_colours: ['orange', 'blue', 'green', 'violet', 'grey'], // Colour of utilities 
   month_labels: ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025'], // Months of utilities data
-  totalBill: [150, 175, 125, 155, 85],  // Total bill costs per month
+  totalBill: [160, 195, 140, 165, 95],  // Total bill costs per month
   Electricity: [35, 32, 37, 30, 33], // Electricity costs per month
   Water: [45, 60, 50, 40, 55], // Water costs per month
   Gas: [30, 25, 20, 35, 30], // Gas costs per month
-  Wifi: [40, 58, 18, 50, 45] // Wi-fi costs per month
+  Wifi: [40, 58, 18, 50, 45], // Wi-fi costs per month
+  Other: [10, 20, 15, 10, 10] // miscellaneous costs per month
 };
 // Replace later with user data fetched from webpage database
 
@@ -23,7 +24,8 @@ const pieChart = new Chart(pieCtx, {
       data: [(util_Data.Electricity[util_Data.Electricity.length -1]), // Data includes latest month utilites
       (util_Data.Water[util_Data.Water.length -1]),
       (util_Data.Gas[util_Data.Gas.length -1]),
-      (util_Data.Wifi[util_Data.Wifi.length -1])],
+      (util_Data.Wifi[util_Data.Wifi.length -1]),
+      (util_Data.Other[util_Data.Other.length -1])],
       backgroundColor: util_Data.util_colours
     }],
   },
@@ -83,7 +85,8 @@ const barChart = new Chart(barCtx, {
       data:[(util_Data.Electricity[util_Data.Electricity.length -1]), //latest month data: Replace with selected date data. 
       (util_Data.Water[util_Data.Water.length -1]),
       (util_Data.Gas[util_Data.Gas.length -1]),
-      (util_Data.Wifi[util_Data.Wifi.length -1])],
+      (util_Data.Wifi[util_Data.Wifi.length -1]),
+      (util_Data.Other[util_Data.Other.length -1])],
       backgroundColor: util_Data.util_colours
     }]
   },
@@ -194,6 +197,7 @@ function populatemonthlyTable(monthIndex) {
     <th style="background-color: #f0f0f0;" >${util_Data.util_labels[1]}</th>
     <th style="background-color: #f0f0f0;" >${util_Data.util_labels[2]}</th>
     <th style="background-color: #f0f0f0;" >${util_Data.util_labels[3]}</th>
+    <th style="background-color: #f0f0f0;" >${util_Data.util_labels[4]}</th>
   `;
   tableThread.appendChild(threadRow);
 
@@ -208,6 +212,7 @@ function populatemonthlyTable(monthIndex) {
     <td>$${util_Data.Water[monthIndex]}</td>
     <td>$${util_Data.Gas[monthIndex]}</td>
     <td>$${util_Data.Wifi[monthIndex]}</td>
+    <td>$${util_Data.Other[monthIndex]}</td>
   `;
 
   tableBody.appendChild(bodyRow);
@@ -284,7 +289,8 @@ monthSelect.addEventListener("change", () => {
     util_Data.Electricity[monthIndex],
     util_Data.Water[monthIndex],
     util_Data.Gas[monthIndex],
-    util_Data.Wifi[monthIndex]
+    util_Data.Wifi[monthIndex],
+    util_Data.Other[monthIndex]
   ];
   barChart.update();
 
