@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        <!-- Welcome section -->
+        
         <!-- Welcome section with background image -->
         <div class="relative bg-cover bg-center py-16 my-12" style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('images/stack-of-bills-landing-page-header.jpg')">
             <div class="container mx-auto px-4 text-center text-white">
@@ -37,8 +37,8 @@
                 <p class="text-lg mb-6">See how your electricity, water, and other bills stack up against past
                     months, and similar households—so you never overpay again</p>
                 <div class="space-x-4">
-                    <button class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">Log In</button>
-                    <button class="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-200 transition">Sign Up</button>
+                    <button id="login-btn" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">Log In</button>
+                    <button id="signup-btn" class="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-200 transition">Sign Up</button>
                 </div>
             </div>
         </div>
@@ -188,6 +188,15 @@
         document.body.scrollTop = 0; // For Safari
         document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
         }
+        // Event listener for login and signup buttons that redirects to the login-signup page 
+        // with the appropriate form
+        document.getElementById('login-btn').addEventListener('click', () => {
+        window.location.href = "/login?form=login";  // Matches existing route
+        });
+
+        document.getElementById('signup-btn').addEventListener('click', () => {
+        window.location.href = "/login?form=signup";  // Same route but with signup param instead
+        });
     </script>
 </body>
 </html>

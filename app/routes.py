@@ -10,6 +10,7 @@ def home():
 # Login/signup page
 @application.route("/login")
 def login():
+    form_type = request.args.get('form', 'login')
     return render_template("login-signup.html")
 
 @application.route("/profile")
