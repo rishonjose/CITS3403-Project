@@ -1,23 +1,22 @@
 from flask import Flask, render_template, request
-
-app = Flask(__name__)
+from app import application
 
 # Homepage route
-@app.route("/")
-@app.route("/home")
+@application.route("/")
+@application.route("/home")
 def home():
     return render_template("landingpage.html")
 
 # Login/signup page
-@app.route("/login")
+@application.route("/login")
 def login():
     return render_template("login-signup.html")
 
-@app.route("/profile")
+@application.route("/profile")
 def profile():
     return render_template("profile.html")
 
-@app.route("/share")
+@application.route("/share")
 def share_page():
     # List of people and their image filenames
     users = [
@@ -28,7 +27,7 @@ def share_page():
     ]
     return render_template("share.html", users=users)
 
-@app.route("/share-data", methods=["POST"])
+@application.route("/share-data", methods=["POST"])
 def handle_share():
     selected = request.form.getlist("share_to")
     print("Sharing with:", selected)
