@@ -1,5 +1,7 @@
-from flask import Flask, render_template, request
-from app import application
+from flask import Flask, render_template, request, flash, redirect, url_for
+from app import application, db
+from app.models import BillEntry
+from datetime import date 
 
 # Homepage route
 @application.route("/")
@@ -15,6 +17,45 @@ def login():
 @application.route("/profile")
 def profile():
     return render_template("profile.html")
+
+@application.route("/upload", methods=["GET", "POST"])
+def uploadpage():
+    if request.method == "POST":
+        # pull values from the form
+        category      = request.form.get("category")
+        units_str     = request.form.get("field_one", "").strip()
+        cost_str      = request.form.get("field_two", "").strip()
+        start_str     = request.form.get("start_date")
+        end_str       = request.form.get("end_date")
+
+        # validate & convert
+        try:
+            units = float(units_str)
+            cost  = float(cost_str)
+            # parse ISO strings into date objects
+            start_date = date.fromisoformat(start_str)
+            end_date   = date.fromisoformat(end_str)
+        except ValueError:
+            flash("Units and cost must be numbers.", "error")
+            return redirect(url_for("uploadpage"))
+
+        # create and save the entry
+        entry = BillEntry(
+            user_id       = 1,                  # swap to current_user.id once you have auth
+            category      = category,
+            units         = units,
+            cost_per_unit = cost,
+            start_date    = start_date,
+            end_date      = end_date
+        )
+        db.session.add(entry)
+        db.session.commit()
+
+        flash("Bill entry saved successfully!", "success")
+        return redirect(url_for("uploadpage"))
+
+    # on GET, just render the form
+    return render_template("uploadpage.html")
 
 @application.route("/share")
 def share_page():
