@@ -261,4 +261,41 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initial load
     loadFamilyMembers();
+
+    // Edit Profile Button (scroll to form)
+    document.querySelector('.bg-gray-800.text-white')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelector('.bg-white form')?.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Profile Picture Upload
+    const profilePicBtn = document.querySelector('.relative button');
+    if (profilePicBtn) {
+        profilePicBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.click();
+            
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = document.querySelector('.rounded-full.border-4');
+                        if (img) img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        });
+    }
+
+    // Navbar Profile Button (if not using data-page-redirect)
+    document.querySelector('nav a[href="/profile"]')?.addEventListener('click', (e) => {
+        if (!e.target.closest('[data-page-redirect]')) {
+            e.preventDefault();
+            window.location.href = '/profile';
+        }
+    });
 });

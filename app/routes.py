@@ -58,3 +58,8 @@ def handle_share():
 @application.route("/vis")
 def visualise_data():
     return render_template("visualiseDataPage.html")
+
+@application.route("/upload")
+@application.route("/u")
+def upload_data():
+    return render_template("uploadpage.html")
