@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 
 <head>
     <meta charset="UTF-8" />
@@ -95,8 +95,8 @@
     <div class="header">
         <div class="logo">Meter</div>
         <div>
-            <button class="button">My Family</button>
-            <button class="button">My Profile</button>
+            <button class="button" data-page-redirect data-href="{{ url_for('share_page') }}">My Family</button>
+            <button class="button" data-page-redirect data-href="{{ url_for('profile') }}">My Profile</button>
         </div>
     </div>
 
@@ -227,5 +227,8 @@
             </div>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/visualiseData.js') }}"></script>
 </body>
-<script src="visualiseData.js"></script>
+</html>
+
