@@ -1,5 +1,9 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, url_for
+from flask_wtf.csrf import CSRFProtect
 from app import application
+
+# Initialize CSRF protection
+csrf = CSRFProtect(application)
 
 # Homepage route
 @application.route("/")
@@ -32,3 +36,14 @@ def handle_share():
     selected = request.form.getlist("share_to")
     print("Sharing with:", selected)
     return "Shared successfully!"
+
+@application.route("/visualise")
+@application.route("/vis")
+def visualise_data():
+    return render_template("visualiseDataPage.html")
+
+#@application.route("/visualise-data", methods=["POST"])
+#def handle_visualise():
+    #selected = request.form.getlist("visualise_data")
+    #print("Visualising data for:", selected)
+    #return "Visualisation started!"
