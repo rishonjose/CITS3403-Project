@@ -4,7 +4,6 @@ from app import application
 
 # Initialize CSRF protection
 csrf = CSRFProtect(application)
-
 # Homepage route
 @application.route("/")
 @application.route("/home")
