@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, flash, redirect, url_for
 from app import application, db
-from app.models import BillEntry
+from app.models import BillEntry, User
 from datetime import date 
+from flask_login import login_user, logout_user, login_required, current_user
 
 # Homepage route
 @application.route("/")
@@ -10,15 +11,62 @@ def home():
     return render_template("landingpage.html")
 
 # Login/signup page
-@application.route("/login")
+# LOGIN
+@application.route("/login", methods=["GET","POST"])
 def login():
+    if request.method == "POST":
+        email = request.form.get("email","").lower().strip()
+        pw    = request.form.get("password","")
+        user  = User.query.filter_by(email=email).first()
+        if user and user.check_password(pw):
+            login_user(user)
+            return redirect(url_for("uploadpage"))
+        flash("Invalid email or password.", "error")
+        return redirect(url_for("login"))
     return render_template("login-signup.html")
+
+# REGISTER
+@application.route("/register", methods=["GET","POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username","").strip()
+        email    = request.form.get("email","").lower().strip()
+        pw       = request.form.get("password","")
+        confirm  = request.form.get("confirm_password","")
+        if not (username and email and pw and confirm):
+            flash("All fields are required.", "error")
+            return redirect(url_for("register"))
+        if pw != confirm:
+            flash("Passwords do not match.", "error")
+            return redirect(url_for("register"))
+        if User.query.filter_by(email=email).first():
+            flash("Email already registered.", "error")
+            return redirect(url_for("register"))
+
+        user = User(username=username, email=email)
+        user.set_password(pw)
+        db.session.add(user)
+        db.session.commit()
+
+        login_user(user)
+        flash(f"Welcome, {username}!", "success")
+        return redirect(url_for("uploadpage"))
+    return render_template("login-signup.html")
+
+# LOGOUT
+@application.route("/logout")
+def logout():
+    logout_user()
+    flash("You’ve been logged out.", "info")
+    return redirect(url_for("login"))
+
 
 @application.route("/profile")
 def profile():
     return render_template("profile.html")
 
 @application.route("/upload", methods=["GET", "POST"])
+@login_required
 def uploadpage():
     if request.method == "POST":
         # pull values from the form
@@ -30,18 +78,17 @@ def uploadpage():
 
         # validate & convert
         try:
-            units = float(units_str)
-            cost  = float(cost_str)
-            # parse ISO strings into date objects
+            units      = float(units_str)
+            cost       = float(cost_str)
             start_date = date.fromisoformat(start_str)
             end_date   = date.fromisoformat(end_str)
-        except ValueError:
-            flash("Units and cost must be numbers.", "error")
+        except (ValueError, TypeError):
+            flash("Units, cost, and dates must be valid.", "error")
             return redirect(url_for("uploadpage"))
 
         # create and save the entry
         entry = BillEntry(
-            user_id       = 1,                  # swap to current_user.id once you have auth
+            user_id       = current_user.id,
             category      = category,
             units         = units,
             cost_per_unit = cost,
