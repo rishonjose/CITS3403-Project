@@ -250,7 +250,7 @@
   <header class="hero">
     <nav>
       <div class="logo">Meter</div>
-      <a href="#" class="account-btn">My Profile</a>
+      <a href="#" class="account-btn" data-page-redirect data-href="{{ url_for('profile') }}">My Profile</a>
     </nav>
     <div class="hero-content">
       <h1>Upload Your Data Here</h1>
@@ -395,6 +395,22 @@
 
     // init
     updateSubmitState();
+
+    // Upload page handlers
+    document.querySelector('.file-btn input[type="file"]')?.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            const fileName = e.target.files[0].name;
+            document.querySelector('.file-btn').textContent = 
+                fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName;
+        }
+    });
+
+    document.querySelector('.data-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // Add form validation and API submission here
+        console.log('Form submitted');
+    });
   </script>
+  <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
 </body>
 </html>

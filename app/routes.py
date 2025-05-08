@@ -1,8 +1,13 @@
+
 from flask import Flask, render_template, request, flash, redirect, url_for
 from app import application, db
 from app.models import BillEntry, User
 from datetime import date 
 from flask_login import login_user, logout_user, login_required, current_user
+
+
+# Initialize CSRF protection
+csrf = CSRFProtect(application)
 
 # Homepage route
 @application.route("/")
@@ -63,7 +68,23 @@ def logout():
 
 @application.route("/profile")
 def profile():
-    return render_template("profile.html")
+    # Default user data - replace with your actual user data source
+    user_data = {
+        "profile_picture_url": url_for('static', filename='images/default-avatar-icon.jpg'),
+        "name": "John Doe",
+        "email": "john@example.com",
+        "bio": "Sample user profile",
+        "first_name": "John",
+        "last_name": "Doe"
+    }
+    
+    try:
+        return render_template("profile.html", user=user_data)
+    except TemplateNotFound:
+        return "Profile template not found", 404
+    except Exception as e:
+        application.logger.error(f"Error rendering profile: {str(e)}")
+        return "Error loading profile page", 500
 
 @application.route("/upload", methods=["GET", "POST"])
 @login_required
@@ -120,3 +141,13 @@ def handle_share():
     selected = request.form.getlist("share_to")
     print("Sharing with:", selected)
     return "Shared successfully!"
+
+@application.route("/visualise")
+@application.route("/vis")
+def visualise_data():
+    return render_template("visualiseDataPage.html")
+
+@application.route("/upload")
+@application.route("/u")
+def upload_data():
+    return render_template("uploadpage.html")
