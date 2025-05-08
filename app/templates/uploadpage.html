@@ -276,29 +276,31 @@
         <button data-type="Other">Other</button>
       </div>
 
-      <form class="data-form">
+      <form class="data-form" action="{{ url_for('uploadpage') }}" method="POST">
         <div id="error-msg" class="error">Please fill in all fields before submitting.</div>
+
+        <input type="hidden" name="category" id="form-category" value="Electricity" />
 
         <div class="form-group">
           <img src="energy-icon.svg" alt="Icon" />
-          <input id="field-one" type="text" placeholder="Energy Consumed" autocomplete="off" />
+          <input id="field-one" name="field_one" type="text" placeholder="Energy Consumed" autocomplete="off" />
         </div>
 
         <div class="form-group">
           <img src="cost-icon.svg" alt="Icon" />
-          <input id="field-two" type="text" placeholder="Cost per kWh" autocomplete="off" />
+          <input id="field-two" name="field_two" type="text" placeholder="Cost per kWh" autocomplete="off" />
         </div>
 
         <div class="form-group">
           <img src="start-icon.svg" alt="Start icon" />
           <label for="start-date">Start Date:</label>
-          <input id="start-date" type="date" />
+          <input id="start-date" name="start_date" type="date" />
         </div>
 
         <div class="form-group">
           <img src="end-icon.svg" alt="End icon" />
           <label for="end-date">End Date:</label>
-          <input id="end-date" type="date" />
+          <input id="end-date" name="end_date" type="date" />
         </div>
 
         <button type="submit" class="btn submit disabled">Submit Details</button>
@@ -341,6 +343,7 @@
     const endDate    = document.getElementById('end-date');
     const submitBtn  = document.querySelector('.btn.submit');
     const errorMsg   = document.getElementById('error-msg');
+    const categoryIn = document.getElementById('form-category');
 
     const placeholderMap = {
       Electricity: ['Energy Consumed',       'Cost per kWh'],
@@ -367,6 +370,8 @@
         const [one, two] = placeholderMap[tab.dataset.type];
         fieldOne.placeholder = one;
         fieldTwo.placeholder = two;
+        // update hidden category
+        categoryIn.value = tab.dataset.type;
         // reset fields on type change
         fieldOne.value = '';
         fieldTwo.value = '';
