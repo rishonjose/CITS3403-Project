@@ -50,3 +50,12 @@ class User(db.Model, UserMixin):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+
+class SharedReport(db.Model):
+    __tablename__ = 'shared_reports'
+
+    id = db.Column(db.Integer, primary_key=True)
+    shared_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    shared_with = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    report_url = db.Column(db.String(255), default="/visualise")
