@@ -1,25 +1,27 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate  import Migrate
+from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_wtf import CSRFProtect
 
-db      = SQLAlchemy()
+db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+csrf = CSRFProtect()
 
 application = Flask(__name__)
 application.config['SECRET_KEY'] = 'amber_pearl_latte_is_the_best'
-
-application.config['SQLALCHEMY_DATABASE_URI']  = 'sqlite:///app.db'
+application.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(application)
 migrate.init_app(application, db)
-login_manager.init_app(application)              
-login_manager.login_view = 'login'               # redirect anonymous users here
+login_manager.init_app(application)
+csrf.init_app(application)
 
-# ensure User model is imported so the loader can find it
-from app.models import User                       
+login_manager.login_view = 'login'
+
+from app.models import User
 
 @login_manager.user_loader
 def load_user(user_id):
