@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, flash
+from flask_login import login_user, logout_user, login_required, current_user # login_user, logout_user is used for session management (implemented or not double check)
 from app import application, db
 from app.models import BillEntry, User
 from datetime import date 
@@ -15,13 +16,14 @@ def home():
 @application.route("/login", methods=["GET","POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email","").lower().strip()
-        pw    = request.form.get("password","")
-        user  = User.query.filter_by(email=email).first()
+        email = request.form.get("email", "").lower().strip()
+        pw = request.form.get("password", "")
+        user = User.query.filter_by(email=email).first()
         if user and user.check_password(pw):
             login_user(user)
+            flash("Login successful!", "success")  # Flash message on successful login
             return redirect(url_for("uploadpage"))
-        flash("Invalid email or password.", "error")
+        flash("Invalid email or password.", "error")  # Flash message on failed login
         return redirect(url_for("login"))
     return render_template("login-signup.html")
 
@@ -60,10 +62,28 @@ def logout():
     flash("You’ve been logged out.", "info")
     return redirect(url_for("login"))
 
-
-@application.route("/profile")
+# New profile route logic, including usernames
+@application.route("/profile", methods=["GET", "POST"]) # <-- GET/POST method action on button
+@login_required
 def profile():
-    return render_template("profile.html")
+    if request.method == "POST":
+        new_username = request.form.get("username").strip()
+        if new_username:
+            if new_username != current_user.username:
+                existing = User.query.filter_by(username=new_username).first()
+                if existing:
+                    flash("Username already taken.", "error")
+                else:
+                    current_user.username = new_username
+                    db.session.commit()
+                    flash("Username updated successfully!", "success")
+            else:
+                flash("That's already your current username.", "info")
+        else:
+            flash("Username cannot be empty.", "error")
+        return redirect(url_for("profile"))
+
+    return render_template("profile.html", user=current_user)
 
 @application.route("/upload", methods=["GET", "POST"])
 @login_required
@@ -106,7 +126,7 @@ def uploadpage():
 
 @application.route("/share")
 def share_page():
-    # List of people and their image filenames
+    # List of people and their image filenames (from user.profile_pic) + TODO: should be real users added not dummy
     users = [
         ("James", "images/avatar1.png"),
         ("Justin", "images/avatar2.png"),

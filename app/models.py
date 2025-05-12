@@ -1,4 +1,5 @@
 from . import db
+from flask import url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
@@ -36,7 +37,8 @@ class User(db.Model, UserMixin):
     id            = db.Column(db.Integer, primary_key=True)
     username      = db.Column(db.String(80), unique=True, nullable=False)
     email         = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=True)
+    profile_pic   = db.Column(db.String(256)) # TODO: fix problem of user.profile_pic not existing
     created_at    = db.Column(db.DateTime, server_default=db.func.now())
     entries       = db.relationship(
                        'BillEntry',
@@ -50,3 +52,16 @@ class User(db.Model, UserMixin):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    @classmethod
+    def create_or_get_from_google(cls, email, username):
+        user = cls.query.filter_by(email=email).first()
+        if not user:
+            user = cls(email=email, username=username)
+            db.session.add(user)
+            db.session.commit()
+        return user
+    
+    @property
+    def profile_picture_url(self):
+        return self.profile_pic or url_for('static', filename='default-profile.png')
