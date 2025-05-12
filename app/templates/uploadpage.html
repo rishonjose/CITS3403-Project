@@ -267,7 +267,7 @@
   <main>
     <section class="manual-entry">
       <h2>Or enter them manually here</h2>
-
+      
       <div class="tabs">
         <button class="active" data-type="Electricity">Electricity</button>
         <button data-type="Water">Water</button>
@@ -334,80 +334,99 @@
   </footer>
 
   <script>
-    const tabs       = document.querySelectorAll('.tabs button');
-    const fieldOne   = document.getElementById('field-one');
-    const fieldTwo   = document.getElementById('field-two');
-    const startDate  = document.getElementById('start-date');
-    const endDate    = document.getElementById('end-date');
-    const submitBtn  = document.querySelector('.btn.submit');
-    const errorMsg   = document.getElementById('error-msg');
-    const categoryIn = document.getElementById('form-category');
+    document.addEventListener("DOMContentLoaded", function () {
+      const tabs       = document.querySelectorAll('.tabs button');
+      const fieldOne   = document.getElementById('field-one');
+      const fieldTwo   = document.getElementById('field-two');
+      const startDate  = document.getElementById('start-date');
+      const endDate    = document.getElementById('end-date');
+      const submitBtn  = document.querySelector('.btn.submit');
+      const categoryIn = document.getElementById('form-category');
+      const iconOne    = document.getElementById('icon-one');
+      const iconTwo    = document.getElementById('icon-two');
+  
+      const placeholderMap = {
+        Electricity: ['Energy Consumed',       'Cost per kWh'],
+        Water:       ['Units of Water Consumed','Cost per Unit'],
+        Gas:         ['Volume of Gas Consumed', 'Cost per Unit'],
+        WiFi:        ['Data Used (GB)',         'Cost per GB'],
+        Other:       ['Units Consumed',         'Cost per Unit']
+      };
+  
+      const iconMap = {
+        Electricity: 'bolt-icon.svg',
+        Water: 'water-icon.svg',
+        Gas: 'gas-icon.svg',
+        WiFi: 'wifi-icon.svg',
+        Other: 'other-icon.svg'
+      };
+  
+      const staticBasePath = "{{ url_for('static', filename='images/') }}";
 
-    const iconOne = document.getElementById('icon-one');
-const iconTwo = document.getElementById('icon-two');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
 
-const iconMap = {
-  Electricity: 'bolt-icon.svg',
-  Water: 'water-icon.svg',
-  Gas: 'gas-icon.svg',
-  WiFi: 'wifi-icon.svg',
-  Other: 'other-icon.svg'
-};
+          const selectedType = tab.dataset.type;
+          const [one, two] = placeholderMap[selectedType];
+          fieldOne.placeholder = one;
+          fieldTwo.placeholder = two;
+          categoryIn.value = selectedType;
 
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
+          iconOne.src = `${staticBasePath}${iconMap[selectedType]}`;
+          iconTwo.src = `${staticBasePath}cost-icon.svg`;
 
-    const selectedType = tab.dataset.type;
-    const [one, two] = placeholderMap[selectedType];
-    fieldOne.placeholder = one;
-    fieldTwo.placeholder = two;
-    categoryIn.value = selectedType;
-
-    // ✅ Update icons
-    iconOne.src = `/static/images/${iconMap[selectedType]}`;
-    iconTwo.src = `/static/images/cost-icon.svg`;
-
-    fieldOne.value = '';
-    fieldTwo.value = '';
-    updateSubmitState();
-  });
-});
-
-
-    // watch every input
-    [fieldOne, fieldTwo, startDate, endDate].forEach(el =>
-      el.addEventListener('input', updateSubmitState)
-    );
-
-    // final guard on click
-    submitBtn.addEventListener('click', e => {
-      if (submitBtn.classList.contains('disabled')) {
-        e.preventDefault();
-        errorMsg.style.display = 'block';
+          fieldOne.value = '';
+          fieldTwo.value = '';
+          updateSubmitState();
+        });
+      });
+  
+      function updateSubmitState() {
+        const allFilled = fieldOne.value.trim() &&
+                          fieldTwo.value.trim() &&
+                          startDate.value &&
+                          endDate.value;
+        submitBtn.classList.toggle('disabled', !allFilled);
       }
-      // else: form would submit normally
-    });
-
-    // init
-    updateSubmitState();
-
-    // Upload page handlers
-    document.querySelector('.file-btn input[type="file"]')?.addEventListener('change', (e) => {
-        if (e.target.files.length) {
-            const fileName = e.target.files[0].name;
-            document.querySelector('.file-btn').textContent = 
-                fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName;
+  
+      [fieldOne, fieldTwo, startDate, endDate].forEach(el =>
+        el.addEventListener('input', updateSubmitState)
+      );
+  
+      submitBtn.addEventListener('click', e => {
+        if (submitBtn.classList.contains('disabled')) {
+          e.preventDefault();
         }
-    });
-
-    document.querySelector('.data-form')?.addEventListener('submit', (e) => {
+      });
+  
+      document.querySelector('.file-btn input[type="file"]')?.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+          const fileName = e.target.files[0].name;
+          document.querySelector('.file-btn').textContent = 
+            fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName;
+        }
+      });
+  
+      document.querySelector('.data-form')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        // Add form validation and API submission here
-        console.log('Form submitted');
+        submitBtn.textContent = 'Submitted!';
+        submitBtn.style.backgroundColor = 'black';
+        submitBtn.style.color = 'white';
+        fieldOne.value = '';
+        fieldTwo.value = '';
+        startDate.value = '';
+        endDate.value = '';
+        updateSubmitState();
+      });
+  
+      updateSubmitState();
     });
   </script>
   <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
+  
+  
 </body>
 </html>
+
