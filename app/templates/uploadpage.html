@@ -33,11 +33,12 @@
     /* ========== HEADER / HERO ========== */
     header.hero {
       position: relative;
-      background: url('hero-bg.jpg') center/cover no-repeat;
+      background: url('{{ url_for('static', filename='images/upload-page-backdrop.jpg') }}') center/cover no-repeat;
       color: var(--brand-white);
       padding: 2rem 1rem;
       text-align: center;
     }
+    
     header.hero::before {
       content: '';
       position: absolute;
@@ -277,28 +278,26 @@
       </div>
 
       <form class="data-form" action="{{ url_for('uploadpage') }}" method="POST">
-        <div id="error-msg" class="error">Please fill in all fields before submitting.</div>
-
         <input type="hidden" name="category" id="form-category" value="Electricity" />
-
+      
         <div class="form-group">
-          <img src="energy-icon.svg" alt="Icon" />
+          <img id="icon-one" src="{{ url_for('static', filename='images/bolt-icon.svg') }}" alt="Icon" />
           <input id="field-one" name="field_one" type="text" placeholder="Energy Consumed" autocomplete="off" />
         </div>
-
+      
         <div class="form-group">
-          <img src="cost-icon.svg" alt="Icon" />
+          <img id="icon-two" src="{{ url_for('static', filename='images/cost-icon.svg') }}" alt="Icon" />
           <input id="field-two" name="field_two" type="text" placeholder="Cost per kWh" autocomplete="off" />
         </div>
-
+      
         <div class="form-group">
-          <img src="start-icon.svg" alt="Start icon" />
+          <img src="{{ url_for('static', filename='images/calendar-icon.svg') }}" alt="Start icon" />
           <label for="start-date">Start Date:</label>
           <input id="start-date" name="start_date" type="date" />
         </div>
-
+      
         <div class="form-group">
-          <img src="end-icon.svg" alt="End icon" />
+          <img src="{{ url_for('static', filename='images/calendar-icon.svg') }}" alt="End icon" />
           <label for="end-date">End Date:</label>
           <input id="end-date" name="end_date" type="date" />
         </div>
@@ -345,39 +344,38 @@
     const errorMsg   = document.getElementById('error-msg');
     const categoryIn = document.getElementById('form-category');
 
-    const placeholderMap = {
-      Electricity: ['Energy Consumed',       'Cost per kWh'],
-      Water:       ['Units of Water Consumed','Cost per Unit'],
-      Gas:         ['Volume of Gas Consumed', 'Cost per Unit'],
-      WiFi:        ['Data Used (GB)',         'Cost per GB'],
-      Other:       ['Units Consumed',         'Cost per Unit']
-    };
+    const iconOne = document.getElementById('icon-one');
+const iconTwo = document.getElementById('icon-two');
 
-    function updateSubmitState() {
-      const allFilled = fieldOne.value.trim() &&
-                        fieldTwo.value.trim() &&
-                        startDate.value &&
-                        endDate.value;
-      submitBtn.classList.toggle('disabled', !allFilled);
-      errorMsg.style.display = 'none';
-    }
+const iconMap = {
+  Electricity: 'bolt-icon.svg',
+  Water: 'water-icon.svg',
+  Gas: 'gas-icon.svg',
+  WiFi: 'wifi-icon.svg',
+  Other: 'other-icon.svg'
+};
 
-    // placeholder swap + active tab
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        const [one, two] = placeholderMap[tab.dataset.type];
-        fieldOne.placeholder = one;
-        fieldTwo.placeholder = two;
-        // update hidden category
-        categoryIn.value = tab.dataset.type;
-        // reset fields on type change
-        fieldOne.value = '';
-        fieldTwo.value = '';
-        updateSubmitState();
-      });
-    });
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    const selectedType = tab.dataset.type;
+    const [one, two] = placeholderMap[selectedType];
+    fieldOne.placeholder = one;
+    fieldTwo.placeholder = two;
+    categoryIn.value = selectedType;
+
+    // ✅ Update icons
+    iconOne.src = `/static/images/${iconMap[selectedType]}`;
+    iconTwo.src = `/static/images/cost-icon.svg`;
+
+    fieldOne.value = '';
+    fieldTwo.value = '';
+    updateSubmitState();
+  });
+});
+
 
     // watch every input
     [fieldOne, fieldTwo, startDate, endDate].forEach(el =>
