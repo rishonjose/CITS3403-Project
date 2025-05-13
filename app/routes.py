@@ -1,4 +1,6 @@
-
+import os
+from werkzeug.utils import secure_filename
+from app.utils import parse_pdf_bill
 from flask import Flask, render_template, request, flash, redirect, url_for
 from jinja2 import TemplateNotFound
 from flask_wtf.csrf import CSRFProtect
@@ -7,9 +9,12 @@ from app.models import BillEntry, User
 from datetime import date 
 from flask_login import login_user, logout_user, login_required, current_user
 
-
 # Initialize CSRF protection
 csrf = CSRFProtect(application)
+
+ALLOWED_EXT = {'pdf'}
+def allowed(filename):
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXT
 
 # Homepage route
 @application.route("/")
@@ -92,14 +97,46 @@ def profile():
 @login_required
 def uploadpage():
     if request.method == "POST":
-        # pull values from the form
-        category      = request.form.get("category")
-        units_str     = request.form.get("field_one", "").strip()
-        cost_str      = request.form.get("field_two", "").strip()
-        start_str     = request.form.get("start_date")
-        end_str       = request.form.get("end_date")
+        # ——— PDF Upload/Parse branch ———
+        pdf = request.files.get("pdf_file")
+        if pdf and allowed(pdf.filename):
+            filename = secure_filename(pdf.filename)
+            upload_dir = application.config['UPLOAD_FOLDER']
+            os.makedirs(upload_dir, exist_ok=True)
+            save_path = os.path.join(upload_dir, filename)
+            pdf.save(save_path)
 
-        # validate & convert
+            try:
+                data = parse_pdf_bill(save_path)
+                # convert & validate parsed values
+                units      = float(data["units"])
+                cost       = float(data["cost"])
+                start_date = date.fromisoformat(data["start_date"])
+                end_date   = date.fromisoformat(data["end_date"])
+
+                entry = BillEntry(
+                    user_id       = current_user.id,
+                    category      = data.get("category", "Other"),
+                    units         = units,
+                    cost_per_unit = cost,
+                    start_date    = start_date,
+                    end_date      = end_date
+                )
+                db.session.add(entry)
+                db.session.commit()
+                flash("PDF parsed and entry saved!", "success")
+                return redirect(url_for("uploadpage"))
+            except Exception:
+                flash("Couldn’t parse the PDF completely. Please enter manually.", "error")
+                # fall‐through to manual entry
+
+        # ——— Manual‐entry branch ———
+        category   = request.form.get("category")
+        units_str  = request.form.get("field_one", "").strip()
+        cost_str   = request.form.get("field_two", "").strip()
+        start_str  = request.form.get("start_date")
+        end_str    = request.form.get("end_date")
+
         try:
             units      = float(units_str)
             cost       = float(cost_str)
@@ -109,7 +146,6 @@ def uploadpage():
             flash("Units, cost, and dates must be valid.", "error")
             return redirect(url_for("uploadpage"))
 
-        # create and save the entry
         entry = BillEntry(
             user_id       = current_user.id,
             category      = category,
