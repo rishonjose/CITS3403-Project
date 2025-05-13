@@ -1,9 +1,15 @@
-from flask import Flask, render_template, request, flash, redirect, url_for, flash
+from flask import Flask, render_template, request, flash, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user # login_user, logout_user is used for session management (implemented or not double check)
+from flask_dance.contrib.google import make_google_blueprint
 from app import application, db
 from app.models import BillEntry, User
 from datetime import date 
-from flask_login import login_user, logout_user, login_required, current_user
+from app.forms import LoginForm, RegistrationForm, BillEntryForm
+
+google_bp = make_google_blueprint(client_id="YOUR_GOOGLE_CLIENT_ID", 
+                                  client_secret="YOUR_GOOGLE_CLIENT_SECRET", 
+                                  redirect_to="google_login_authorized")
+application.register_blueprint(google_bp, url_prefix='/google_login')
 
 # Homepage route
 @application.route("/")
@@ -13,47 +19,56 @@ def home():
 
 # Login/signup page
 # LOGIN
-@application.route("/login", methods=["GET","POST"])
+@application.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        email = request.form.get("email", "").lower().strip()
-        pw = request.form.get("password", "")
-        user = User.query.filter_by(email=email).first()
-        if user and user.check_password(pw):
+    if current_user.is_authenticated:
+        return redirect(url_for('uploadpage'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data.lower()).first()
+        if user and user.check_password(form.password.data):
             login_user(user)
-            flash("Login successful!", "success")  # Flash message on successful login
-            return redirect(url_for("uploadpage"))
-        flash("Invalid email or password.", "error")  # Flash message on failed login
-        return redirect(url_for("login"))
-    return render_template("login-signup.html")
+            next_page = request.args.get('next')
+            flash(f"Welcome back, {user.username}!", "success")
+            return redirect(next_page or url_for('uploadpage'))
+        flash("Invalid email or password", "error")
+    
+    return render_template("login-signup.html", form=form)
 
-# REGISTER
-@application.route("/register", methods=["GET","POST"])
+@application.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == "POST":
-        username = request.form.get("username","").strip()
-        email    = request.form.get("email","").lower().strip()
-        pw       = request.form.get("password","")
-        confirm  = request.form.get("confirm_password","")
-        if not (username and email and pw and confirm):
-            flash("All fields are required.", "error")
-            return redirect(url_for("register"))
-        if pw != confirm:
-            flash("Passwords do not match.", "error")
-            return redirect(url_for("register"))
-        if User.query.filter_by(email=email).first():
-            flash("Email already registered.", "error")
-            return redirect(url_for("register"))
+    if current_user.is_authenticated:
+        return redirect(url_for('uploadpage'))
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        try:
+            user = User(
+                username=form.username.data,
+                email=form.email.data.lower(),
+            )
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            flash(f"Account created for {form.username.data}!", "success")
+            return redirect(url_for('uploadpage'))
+        except Exception as e:
+            db.session.rollback()
+            application.logger.error(f"Registration failed: {str(e)}")
+            flash("Registration failed. Please try again.", "error")
+    return render_template("login-signup.html", form=form)
 
-        user = User(username=username, email=email)
-        user.set_password(pw)
+
+def get_or_create_user(user_data):
+    """ Function to check if the user exists in the database, otherwise create a new user. """
+    user = User.query.filter_by(email=user_data['emails'][0]['value']).first()
+    if not user:
+        user = User(email=user_data['emails'][0]['value'], name=user_data['displayName'])
         db.session.add(user)
         db.session.commit()
-
-        login_user(user)
-        flash(f"Welcome, {username}!", "success")
-        return redirect(url_for("uploadpage"))
-    return render_template("login-signup.html")
+    return user
 
 # LOGOUT
 @application.route("/logout")
@@ -88,41 +103,27 @@ def profile():
 @application.route("/upload", methods=["GET", "POST"])
 @login_required
 def uploadpage():
-    if request.method == "POST":
-        # pull values from the form
-        category      = request.form.get("category")
-        units_str     = request.form.get("field_one", "").strip()
-        cost_str      = request.form.get("field_two", "").strip()
-        start_str     = request.form.get("start_date")
-        end_str       = request.form.get("end_date")
-
-        # validate & convert
+    form = BillEntryForm()
+    if form.validate_on_submit():
         try:
-            units      = float(units_str)
-            cost       = float(cost_str)
-            start_date = date.fromisoformat(start_str)
-            end_date   = date.fromisoformat(end_str)
-        except (ValueError, TypeError):
-            flash("Units, cost, and dates must be valid.", "error")
-            return redirect(url_for("uploadpage"))
-
-        # create and save the entry
-        entry = BillEntry(
-            user_id       = current_user.id,
-            category      = category,
-            units         = units,
-            cost_per_unit = cost,
-            start_date    = start_date,
-            end_date      = end_date
-        )
-        db.session.add(entry)
-        db.session.commit()
-
-        flash("Bill entry saved successfully!", "success")
-        return redirect(url_for("uploadpage"))
-
-    # on GET, just render the form
-    return render_template("uploadpage.html")
+            entry = BillEntry(
+                user_id=current_user.id,
+                category=form.category.data,
+                units=form.units.data,
+                cost_per_unit=form.cost_per_unit.data,
+                start_date=form.start_date.data,
+                end_date=form.end_date.data
+            )
+            db.session.add(entry)
+            db.session.commit()
+            flash("Bill entry saved successfully!", "success")
+            return redirect(url_for('visualisedatapage'))  # Redirect to visualiseData / 'analytics' page
+        except Exception as e:
+            db.session.rollback()
+            application.logger.error(f"Bill entry failed: {str(e)}")
+            flash("Failed to save bill. Please try again.", "error")
+    
+    return render_template("uploadpage.html", form=form)
 
 @application.route("/share")
 def share_page():
@@ -140,3 +141,10 @@ def handle_share():
     selected = request.form.getlist("share_to")
     print("Sharing with:", selected)
     return "Shared successfully!"
+
+@application.route("/analytics")
+@login_required
+def visualisedatapage():
+    # Get user's bill entries
+    entries = BillEntry.query.filter_by(user_id=current_user.id).all()
+    return render_template("visualisedatapage.html", entries=entries)
