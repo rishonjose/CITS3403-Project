@@ -38,7 +38,7 @@ class User(db.Model, UserMixin):
     username      = db.Column(db.String(80), unique=True, nullable=False)
     email         = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=True)
-    profile_pic   = db.Column(db.String(256)) # TODO: fix problem of user.profile_pic not existing
+    profile_pic   = db.Column(db.String(256))
     created_at    = db.Column(db.DateTime, server_default=db.func.now())
     entries       = db.relationship(
                        'BillEntry',
