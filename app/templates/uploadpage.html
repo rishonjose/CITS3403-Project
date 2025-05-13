@@ -33,11 +33,12 @@
     /* ========== HEADER / HERO ========== */
     header.hero {
       position: relative;
-      background: url('hero-bg.jpg') center/cover no-repeat;
+      background: url('{{ url_for('static', filename='images/upload-page-backdrop.jpg') }}') center/cover no-repeat;
       color: var(--brand-white);
       padding: 2rem 1rem;
       text-align: center;
     }
+    
     header.hero::before {
       content: '';
       position: absolute;
@@ -159,7 +160,8 @@
       height: 24px;
       margin-right: 0.5rem;
     }
-    .form-group input {
+    .form-group input, 
+    .form-group select {
       flex: 1;
       border: none;
       background: transparent;
@@ -174,19 +176,18 @@
       cursor: pointer;
     }
 
-    /* Disabled-looking submit */
-    .btn.submit.disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    /* Error message */
+    /* Error styles */
     .error {
       color: #c00;
       font-size: 0.9rem;
       margin-top: -1rem;
       margin-bottom: 1rem;
-      display: none;
+    }
+
+    /* Disabled-looking submit */
+    .btn.submit.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     /* ========== FOOTER ========== */
@@ -238,10 +239,10 @@
       display: inline-block;
       background-size: cover;
     }
-    .social .fb { background-image: url('fb.svg'); }
-    .social .linkedin { background-image: url('linkedin.svg'); }
-    .social .yt { background-image: url('youtube.svg'); }
-    .social .ig { background-image: url('instagram.svg'); }
+    .social .fb { background-image: url('{{ url_for('static', filename='images/fb.svg') }}'); }
+    .social .linkedin { background-image: url('{{ url_for('static', filename='images/linkedin.svg') }}'); }
+    .social .yt { background-image: url('{{ url_for('static', filename='images/youtube.svg') }}'); }
+    .social .ig { background-image: url('{{ url_for('static', filename='images/instagram.svg') }}'); }
   </style>
 </head>
 <body>
@@ -250,11 +251,15 @@
   <header class="hero">
     <nav>
       <div class="logo">Meter</div>
-      <a href="#" class="account-btn">My Profile</a>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('profile') }}" class="account-btn">My Profile</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="account-btn">Login</a>
+      {% endif %}
     </nav>
     <div class="hero-content">
       <h1>Upload Your Data Here</h1>
-      <p>Subheading that gets people psyched to keep reading.</p>
+      <p>Redefining utility tracking — smarter, simpler, cleaner.</p>
       <label class="file-btn">
         Choose PDF
         <input type="file" accept="application/pdf" />
@@ -276,32 +281,80 @@
         <button data-type="Other">Other</button>
       </div>
 
-      <form class="data-form" action="{{ url_for('uploadpage') }}" method="POST">
-        <div id="error-msg" class="error">Please fill in all fields before submitting.</div>
-
+      <form class="data-form" method="POST" action="{{ url_for('uploadpage') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="category" id="form-category" value="Electricity" />
 
-        <div class="form-group">
-          <img src="energy-icon.svg" alt="Icon" />
-          <input id="field-one" name="field_one" type="text" placeholder="Energy Consumed" autocomplete="off" />
-        </div>
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mb-4">
+            {% for category, message in messages %}
+              <div class="p-3 rounded text-sm font-medium text-white
+              {% if category == 'success' %} bg-green-500
+              {% elif category == 'error' %} bg-red-500
+              {% elif category == 'info' %} bg-blue-500
+              {% else %} bg-gray-500 {% endif %}">
+              {{ message }}
+              </div>
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
 
+        <!-- Units Field -->
         <div class="form-group">
-          <img src="cost-icon.svg" alt="Icon" />
-          <input id="field-two" name="field_two" type="text" placeholder="Cost per kWh" autocomplete="off" />
+          <img id="icon-one" src="{{ url_for('static', filename='images/bolt-icon.svg') }}" alt="Icon" />
+          {{ form.units(class="w-full border-none bg-transparent focus:outline-none", id="field-one", placeholder="Energy Consumed") }}
         </div>
+        {% if form.units.errors %}
+          <div class="error">
+            {% for error in form.units.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
 
+        <!-- Cost Field -->
         <div class="form-group">
-          <img src="start-icon.svg" alt="Start icon" />
+          <img id="icon-two" src="{{ url_for('static', filename='images/cost-icon.svg') }}" alt="Icon" />
+          {{ form.cost_per_unit(class="w-full border-none bg-transparent focus:outline-none", id="field-two", placeholder="Cost per kWh") }}
+        </div>
+        {% if form.cost_per_unit.errors %}
+          <div class="error">
+            {% for error in form.cost_per_unit.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Start Date Field -->
+        <div class="form-group">
+          <img src="{{ url_for('static', filename='images/calendar-icon.svg') }}" alt="Start icon" />
           <label for="start-date">Start Date:</label>
-          <input id="start-date" name="start_date" type="date" />
+          {{ form.start_date(class="w-full border-none bg-transparent focus:outline-none", id="start-date") }}
         </div>
+        {% if form.start_date.errors %}
+          <div class="error">
+            {% for error in form.start_date.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
 
+        <!-- End Date Field -->
         <div class="form-group">
-          <img src="end-icon.svg" alt="End icon" />
+          <img src="{{ url_for('static', filename='images/calendar-icon.svg') }}" alt="End icon" />
           <label for="end-date">End Date:</label>
-          <input id="end-date" name="end_date" type="date" />
+          {{ form.end_date(class="w-full border-none bg-transparent focus:outline-none", id="end-date") }}
         </div>
+        {% if form.end_date.errors %}
+          <div class="error">
+            {% for error in form.end_date.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
 
         <button type="submit" class="btn submit disabled">Submit Details</button>
       </form>
@@ -336,65 +389,83 @@
   </footer>
 
   <script>
-    const tabs       = document.querySelectorAll('.tabs button');
-    const fieldOne   = document.getElementById('field-one');
-    const fieldTwo   = document.getElementById('field-two');
-    const startDate  = document.getElementById('start-date');
-    const endDate    = document.getElementById('end-date');
-    const submitBtn  = document.querySelector('.btn.submit');
-    const errorMsg   = document.getElementById('error-msg');
-    const categoryIn = document.getElementById('form-category');
+    document.addEventListener("DOMContentLoaded", function () {
+      const tabs       = document.querySelectorAll('.tabs button');
+      const fieldOne   = document.getElementById('field-one');
+      const fieldTwo   = document.getElementById('field-two');
+      const startDate  = document.getElementById('start-date');
+      const endDate    = document.getElementById('end-date');
+      const submitBtn  = document.querySelector('.btn.submit');
+      const categoryIn = document.getElementById('form-category');
+      const iconOne    = document.getElementById('icon-one');
+      const iconTwo    = document.getElementById('icon-two');
+  
+      const placeholderMap = {
+        Electricity: ['Energy Consumed',       'Cost per kWh'],
+        Water:       ['Units of Water Consumed','Cost per Unit'],
+        Gas:         ['Volume of Gas Consumed', 'Cost per Unit'],
+        WiFi:        ['Data Used (GB)',         'Cost per GB'],
+        Other:       ['Units Consumed',         'Cost per Unit']
+      };
+  
+      const iconMap = {
+        Electricity: 'bolt-icon.svg',
+        Water: 'water-icon.svg',
+        Gas: 'gas-icon.svg',
+        WiFi: 'wifi-icon.svg',
+        Other: 'other-icon.svg'
+      };
+  
+      const staticBasePath = "{{ url_for('static', filename='images/') }}";
 
-    const placeholderMap = {
-      Electricity: ['Energy Consumed',       'Cost per kWh'],
-      Water:       ['Units of Water Consumed','Cost per Unit'],
-      Gas:         ['Volume of Gas Consumed', 'Cost per Unit'],
-      WiFi:        ['Data Used (GB)',         'Cost per GB'],
-      Other:       ['Units Consumed',         'Cost per Unit']
-    };
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
 
-    function updateSubmitState() {
-      const allFilled = fieldOne.value.trim() &&
-                        fieldTwo.value.trim() &&
-                        startDate.value &&
-                        endDate.value;
-      submitBtn.classList.toggle('disabled', !allFilled);
-      errorMsg.style.display = 'none';
-    }
+          const selectedType = tab.dataset.type;
+          const [one, two] = placeholderMap[selectedType];
+          fieldOne.placeholder = one;
+          fieldTwo.placeholder = two;
+          categoryIn.value = selectedType;
 
-    // placeholder swap + active tab
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        const [one, two] = placeholderMap[tab.dataset.type];
-        fieldOne.placeholder = one;
-        fieldTwo.placeholder = two;
-        // update hidden category
-        categoryIn.value = tab.dataset.type;
-        // reset fields on type change
-        fieldOne.value = '';
-        fieldTwo.value = '';
-        updateSubmitState();
+          iconOne.src = `${staticBasePath}${iconMap[selectedType]}`;
+          iconTwo.src = `${staticBasePath}cost-icon.svg`;
+
+          fieldOne.value = '';
+          fieldTwo.value = '';
+          updateSubmitState();
+        });
       });
-    });
-
-    // watch every input
-    [fieldOne, fieldTwo, startDate, endDate].forEach(el =>
-      el.addEventListener('input', updateSubmitState)
-    );
-
-    // final guard on click
-    submitBtn.addEventListener('click', e => {
-      if (submitBtn.classList.contains('disabled')) {
-        e.preventDefault();
-        errorMsg.style.display = 'block';
+  
+      function updateSubmitState() {
+        const allFilled = fieldOne.value.trim() &&
+                          fieldTwo.value.trim() &&
+                          startDate.value &&
+                          endDate.value;
+        submitBtn.classList.toggle('disabled', !allFilled);
       }
-      // else: form would submit normally
+  
+      [fieldOne, fieldTwo, startDate, endDate].forEach(el =>
+        el.addEventListener('input', updateSubmitState)
+      );
+  
+      submitBtn.addEventListener('click', e => {
+        if (submitBtn.classList.contains('disabled')) {
+          e.preventDefault();
+        }
+      });
+  
+      document.querySelector('.file-btn input[type="file"]')?.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+          const fileName = e.target.files[0].name;
+          document.querySelector('.file-btn').textContent = 
+            fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName;
+        }
+      });
+  
+      updateSubmitState();
     });
-
-    // init
-    updateSubmitState();
   </script>
 </body>
 </html>
