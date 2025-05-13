@@ -30,10 +30,19 @@ def google_auth():
         username = user_info.get('name', email.split('@')[0])  # Fallback if no name
 
         user = User.query.filter_by(email=email).first()
-        if not user:
-            user = User(email=email, username=username, profile_pic=user_info.get('picture'))
-            db.session.add(user)
-            db.session.commit()
+        try:
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                user = User(email=email, username=username, profile_pic=user_info.get('picture'))
+                db.session.add(user)
+                db.session.commit()
+            login_user(user)
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Database error during Google auth: {str(e)}")
+            flash("Login failed due to system error", "error")
+            return redirect(url_for('login'))
+
 
         login_user(user)
         flash(f"Logged in as {username}", "success")
