@@ -1,6 +1,6 @@
 from app import application
 from flask_migrate import upgrade
-from flask_wtf import LoginManager
+from flask_login import LoginManager
 
 login_manager = LoginManager()
 
