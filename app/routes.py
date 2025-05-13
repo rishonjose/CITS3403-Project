@@ -11,6 +11,7 @@ google_bp = make_google_blueprint(client_id="YOUR_GOOGLE_CLIENT_ID",
                                   redirect_to="google_login_authorized")
 application.register_blueprint(google_bp, url_prefix='/google_login')
 
+
 # Homepage route
 @application.route("/")
 @application.route("/home")
