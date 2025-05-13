@@ -1,5 +1,6 @@
 
 from flask import Flask, render_template, request, flash, redirect, url_for
+from jinja2 import TemplateNotFound
 from flask_wtf.csrf import CSRFProtect
 from app import application, db
 from app.models import BillEntry, User
