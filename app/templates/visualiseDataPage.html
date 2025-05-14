@@ -8,90 +8,91 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
         .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 20px;
-        background-color: #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
         }
-        .button, .card button{
-        background-color: black;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 10px;
-        cursor: pointer;
+        .button, .card button {
+            background-color: black;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
         }
-        .button:hover, .card button:hover{
-        background-color: #04AA6D;
+        .button:hover, .card button:hover {
+            background-color: #04AA6D;
         }
         .charts {
-        display: flex;
-        justify-content: space-around;
+            display: flex;
+            justify-content: space-around;
         }
         canvas {
-        max-width: 40%;
-        max-height: 100%;
+            max-width: 40%;
+            max-height: 100%;
         }
         .Monthly-Analytics {
-        display: flex;
-        justify-content: space-around;
-        margin: 40px 40px;
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 40px;
         }
         .monthly-analytics, .recent-bills {
-        width: 45%;
-        margin-left: 100px;
+            width: 45%;
+            margin-left: 100px;
         }
         .monthly-analytics h2, .recent-bills h2 {
-        font-size: 24px;
-        margin-bottom: 10px;
-        margin-left: 20px;
+            font-size: 24px;
+            margin-bottom: 10px;
+            margin-left: 20px;
         }
         .dropdown {
-        margin-left: 20px;
-        margin-bottom: 20px;
-        font-size: 18px;
-        position: relative; top: 15px; 
+            margin-left: 20px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            position: relative;
+            top: 15px;
         }
         .card {
-        background-color: #f8f8f8;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
         .card h3 {
-        margin-top: 0;
+            margin-top: 0;
         }
         .card button {
-        padding: 5px 10px;
+            padding: 5px 10px;
         }
-        .Tables{
-        text-align: center;
-        margin-top: 20px;
+        .Tables {
+            text-align: center;
+            margin-top: 20px;
         }
         .Tables th, .Tables td {
-        padding: 10px;
-        border: 1px solid #ccc;
+            padding: 10px;
+            border: 1px solid #ccc;
         }
-        .Tables-collapse{
-        width: 100%;
-        border-collapse: collapse; 
-        font-size: 16px;
+        .Tables-collapse {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
         }
         hr.solid {
-        border-top: 3px solid #bbb;
-        margin-top: 5%;
+            border-top: 3px solid #bbb;
+            margin-top: 5%;
         }
     </style>
 </head>
 
 <body>
-    <!-- Header with meter logo and navigation buttons -->
+    <!-- Header -->
     <div class="header">
         <div class="logo">Meter</div>
         <div>
@@ -100,135 +101,84 @@
         </div>
     </div>
 
-  <!-- Overview Section -->
+    <!-- Overview Section -->
     <div style="text-align: center;"><h1>Bill Analytics Page</h1></div>
-    <div>
+    <section>
         <h2 style="margin-left: 10%;">Your Bills Overview</h2>
         <div class="charts">
             <canvas id="doughnut"></canvas>
             <canvas id="lineChart"></canvas>
         </div>
-    </div>
-    
+    </section>
     <hr class="solid">
 
-    <!-- Monthly Analytics Section -->
+    <!-- Monthly Analytics -->
     <div class="Monthly-Analytics">
-
-        <!-- Left Monthly Overveiw Section -->
-        <div class="monthly-analytics">
-            <h2 style="display:inline-block;">Monthly Analytics Overview</h2>
-
-            <!-- Monthly Graph/Table --->
-            <div style="display:inline-block;">
-                <div style="position: relative; left: 60px; top: 10px; ">Select date</div>
-                <select style="margin-left:60px;" id="monthSelect" class="dropdown">
-                    <!-- Monthly Dropdown --->
-                </select>
-            </div>
-
-            <canvas id="barChart" style="max-width: 100%;"></canvas>
+        <article class="monthly-analytics">
+            <h2>Monthly Analytics Overview</h2>
+            <label for="monthSelect" class="dropdown">Select date</label>
+            <select id="monthSelect" class="dropdown"></select>
+            <canvas id="barChart"></canvas>
             <div class="Tables">
                 <button class="button" onclick="toggleMonthlyView()">Switch to Table View</button>
             </div>
             <div id="monthlyTable" class="Tables" style="display: none;">
                 <table class="Tables-collapse">
-                    <thead>
-                        <!-- Utility Labels Table Data--->
-                    </thead>
-                    <tbody>
-                        <!-- Month Utility Cost Table Data--->
-                    </tbody>
+                    <thead></thead>
+                    <tbody></tbody>
                 </table>
             </div>
+            <p><b id="selectedMonthHeading"></b><br><small>(Electrical, Water, Wi-Fi, Gas, Other)</small></p>
+            <div class="card" style="height:220px;"></div>
+        </article>
 
-            <!-- Monthly Graph/Table Information--->
-            <p><b id="selectedMonthHeading"></b><br>
-            <small> (Electrical, Water,  Wi-Fi and Gas)</small></p>
-            <div class="card" style="height:220px;"> 
-            </div>
-        </div>
-
-        <!-- Right Your Recent Bills Section -->
-        <div class="recent-bills">
+        <aside class="recent-bills">
             <h2>Your Recent Bills</h2>
+            <!-- Replace static entries with dynamic list later -->
             <div class="card">
                 <h3>January Electrical Bill</h3>
                 <p>(Uploaded 3rd Feb 2025)</p>
-                <p>Monthly electrical bill for January.</p>
                 <p>Total payment amount: $296.18</p>
                 <button>Edit</button>
                 <button>Delete</button>
             </div>
-            <div class="card">
-                <h3>January Water Bill</h3>
-                <p>(Uploaded 3rd feb 2025)</p>
-                <p>Monthly water bill for January.</p>
-                <p>Total payment amount: $204.15</p>
-                <button>Edit</button>
-                <button>Delete</button>
-            </div>
-            <div class="card">
-                <h3>January Wi-Fi Bill</h3>
-                <p>(Uploaded 1st feb 2025)</p>
-                <p>Monthly Wi-Fi bill for January.</p>
-                <p>Total payment amount: $80.00</p>
-                <button>Edit</button>
-                <button>Delete</button>
-            </div>
+            <!-- More cards… -->
             <button class="button" style="margin-right:20px">Add Bill</button>
             <button class="button">Full bill history</button>
-        </div>
+        </aside>
     </div>
     <hr class="solid">
 
-    <!-- Utilties Analytics Section -->
-    <div class="utility-section">
-        <div>
-            <h1 style="display:inline-block; margin-left:100px; margin-top:80px;" id="selectedUtilityHeading"></h1>
-            <div style="text-align: right; margin-right:250px;">
-                <div>Select Category</div>
-                <select id="utilitySelect" class="dropdown">
-                    <!-- Utilties Dropdown Section -->
-                </select>
-            </div>
-        </div>
+    <!-- Utilities Analytics -->
+    <section class="utility-section">
+        <header>
+            <h1 id="selectedUtilityHeading" style="margin-left:100px;"></h1>
+            <label for="utilitySelect" class="dropdown">Select Category</label>
+            <select id="utilitySelect" class="dropdown"></select>
+        </header>
         <div style="display: flex; justify-content: space-around; margin: 40px 100px;">
-
-            <!-- Left Utilties Graph Section -->
-            <div style="flex: 2;">
-                <canvas id="utilityChart" style="max-width: 100%;"></canvas>
+            <div style="flex:2;">
+                <canvas id="utilityChart"></canvas>
                 <div class="Tables">
                     <button class="button" onclick="toggleUtilityView()">Switch to Table View</button>
                 </div>
                 <div id="utilityTable" class="Tables" style="display: none;">
-                    <table  class="Tables-collapse">
-                        <thead>
-                            <!-- Month Labels Table Data--->
-                        </thead>
-                        <tbody>
-                            <!-- Month Utility Cost Table Data--->
-                        </tbody>
+                    <table class="Tables-collapse">
+                        <thead></thead>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
-            
-            <!-- Right Utilites Information Cards -->
-            <div style="flex: 1;">
-                <div class="card">
-                    <h3>Monthly Usage Insights</h3><br><br><br>
-                </div>
-                <div class="card">
-                    <h3>Average Usage Insights</h3><br><br><br>
-                </div>
-                <div class="card">
-                    <h3>Tips to Save</h3><br><br><br>
-                </div>
+            <div style="flex:1;">
+                <div class="card"><h3>Monthly Usage Insights</h3></div>
+                <div class="card"><h3>Average Usage Insights</h3></div>
+                <div class="card"><h3>Tips to Save</h3></div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
     <script src="{{ url_for('static', filename='js/visualiseData.js') }}"></script>
 </body>
 </html>
-

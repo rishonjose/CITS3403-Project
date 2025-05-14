@@ -1,12 +1,13 @@
 import os
 from werkzeug.utils import secure_filename
 from app.utils import parse_pdf_bill
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
+from collections import defaultdict
 from jinja2 import TemplateNotFound
 from flask_wtf.csrf import CSRFProtect
 from app import application, db
 from app.models import BillEntry, User
-from datetime import date 
+from datetime import date, datetime
 from flask_login import login_user, logout_user, login_required, current_user
 
 # Initialize CSRF protection
@@ -189,3 +190,33 @@ def visualise_data():
 @application.route("/u")
 def upload_data():
     return render_template("uploadpage.html")
+
+@application.route('/api/analytics')
+@login_required
+def analytics_api():
+    # 1) build a nested dict of month → category → total
+    raw = defaultdict(lambda: defaultdict(float))
+    entries = BillEntry.query.filter_by(user_id=current_user.id).all()
+    for e in entries:
+        mon = e.start_date.strftime('%b %Y')
+        raw[mon][e.category] += e.units * e.cost_per_unit
+
+    # 2) sort months chronologically
+    months = sorted(raw.keys(),
+                    key=lambda m: datetime.strptime(m, '%b %Y'))
+
+    # 3) assemble arrays for Chart.js
+    utils     = ['Electricity','Water','Gas','WiFi','Other']
+    totalBill = [ sum(raw[m].values())         for m in months ]
+    util_data = { u: [ raw[m].get(u, 0) for m in months ]
+                  for u in utils }
+
+    colours = ['orange','blue','green','violet','grey']
+    # 4) return JSON
+    return jsonify({
+        'month_labels': months,
+        'util_labels' : utils,
+        'util_colours': colours,
+        'totalBill'   : totalBill,
+        'util_data'   : util_data
+    })
