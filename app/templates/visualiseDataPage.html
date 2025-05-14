@@ -183,8 +183,7 @@
                     action="{{ url_for('delete_entry', entry_id=bill.id) }}"
                     method="POST"
                     style="display:inline; margin-left:8px;"
-                    onsubmit="return confirm('Really delete this bill?');"
-                >
+                    onsubmit="return confirm('Really delete this bill?');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit">Delete</button>
                 </form>
@@ -193,8 +192,10 @@
             <p>No bills found—try uploading one!</p>
             {% endfor %}
 
-            <button class="button" style="margin-right:20px">Add Bill</button>
-            <button class="button">Full bill history</button>
+            <button class="button" style="margin-right:20px" 
+                    onclick="window.location.href='{{ url_for('uploadpage') }}'">
+                    Add Bill</button>
+            <button class="button" onclick="window.location.href='{{ url_for('bill_history') }}'">Full bill history</button>
         </aside>
     </div>
     <hr class="solid">

@@ -82,7 +82,7 @@ def register():
 @application.route("/logout")
 def logout():
     logout_user()
-    flash("You’ve been logged out.", "info")
+    flash("You've been logged out.", "info")
     return redirect(url_for("login"))
 
 
@@ -149,7 +149,7 @@ def uploadpage():
                 return redirect(url_for("uploadpage"))
             except Exception:
                 flash(
-                    "Couldn’t parse the PDF completely. "
+                    "Couldn't parse the PDF completely. "
                     "Please enter manually.",
                     "error"
                 )
@@ -271,13 +271,13 @@ def analytics_api():
 def delete_entry(entry_id):
     entry = BillEntry.query.get_or_404(entry_id)
     if entry.user_id != current_user.id:
-        flash("That’s not your bill to delete!", "error")
-        return redirect(url_for('visualise_data'))
+        flash("That's not your bill to delete!", "error")
+        return redirect(request.referrer or url_for('visualise_data'))
 
     db.session.delete(entry)
     db.session.commit()
     flash("Bill deleted.", "success")
-    return redirect(url_for('visualise_data'))
+    return redirect(request.referrer or url_for('visualise_data'))
 
 
 @application.route('/entry/<int:entry_id>/edit', methods=['GET', 'POST'])
@@ -285,8 +285,8 @@ def delete_entry(entry_id):
 def edit_entry(entry_id):
     entry = BillEntry.query.get_or_404(entry_id)
     if entry.user_id != current_user.id:
-        flash("Cannot edit someone else’s bill.", "error")
-        return redirect(url_for('visualise_data'))
+        flash("Cannot edit someone else's bill.", "error")
+        return redirect(request.referrer or url_for('visualise_data'))
 
     if request.method == 'POST':
         # pull & validate exactly like uploadpage()
@@ -298,16 +298,30 @@ def edit_entry(entry_id):
             entry.end_date      = date.fromisoformat(request.form['end_date'])
         except (ValueError, TypeError):
             flash("Invalid data; please try again.", "error")
-            return redirect(url_for('edit_entry', entry_id=entry_id))
+            return redirect(request.referrer or url_for('visualise_data'))
 
         db.session.commit()
         flash("Bill updated!", "success")
-        return redirect(url_for('visualise_data'))
+        return redirect(request.referrer or url_for('visualise_data'))
 
     # GET → pre-populate a simple edit form
     return render_template('edit_bill.html', bill=entry)
 
 
+@application.route('/history')
+@login_required
+def bill_history():
+    page = request.args.get('page', 1, type=int)
+    pagination = (BillEntry.query
+                  .filter_by(user_id=current_user.id)
+                  .order_by(BillEntry.created_at.desc())
+                  .paginate(page=page, per_page=20))
+    return render_template(
+      'history.html',
+      bills=pagination.items,
+      prev_page=pagination.prev_num,
+      next_page=pagination.next_num
+    )
 
 
 @application.route("/u")
