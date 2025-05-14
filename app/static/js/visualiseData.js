@@ -157,8 +157,18 @@ document.addEventListener('DOMContentLoaded', () => {
       function populateUtilityTable(util) {
         const thead = utilityTable.querySelector('thead');
         const tbody = utilityTable.querySelector('tbody');
-        thead.innerHTML = `<tr><th>Month</th>${month_labels.map(m => `<th>${m}</th>`).join('')}</tr>`;
-        tbody.innerHTML = `<tr><td><b>Bill Cost</b></td>${util_data[util].map(v => `<td>$${v}</td>`).join('')}</tr>`;
+        thead.innerHTML = `<tr><th>Month</th><th>Bill Cost</th></tr>`; // 1. Replace header with just “Month” and “Bill Cost”
+        tbody.innerHTML = ''; // 2. Clear old rows
+        // 3. For each month, append a row [month | cost]
+        month_labels.forEach((month, idx) => {
+          const cost = util_data[util][idx] || 0;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${month}</td>
+            <td>$${cost}</td>
+          `;
+          tbody.appendChild(tr);
+        });
       }
 
       // Initial UI setup
