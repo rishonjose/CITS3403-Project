@@ -184,7 +184,12 @@ def handle_share():
 @application.route("/visualise")
 @application.route("/vis")
 def visualise_data():
-    return render_template("visualiseDataPage.html")
+    recent = (BillEntry.query
+              .filter_by(user_id=current_user.id)
+              .order_by(BillEntry.created_at.desc())
+              .limit(4)
+              .all())
+    return render_template("visualiseDataPage.html", recent_bills=recent)
 
 @application.route("/upload")
 @application.route("/u")

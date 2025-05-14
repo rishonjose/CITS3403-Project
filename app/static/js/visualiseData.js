@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             label: 'Costs by Utility',
             data: util_labels.map(label => util_data[label][latestIdx]),
-            backgroundColor: util_colours
           }]
         },
         options: {

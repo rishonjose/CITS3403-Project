@@ -134,15 +134,18 @@
 
         <aside class="recent-bills">
             <h2>Your Recent Bills</h2>
-            <!-- Replace static entries with dynamic list later -->
-            <div class="card">
-                <h3>January Electrical Bill</h3>
-                <p>(Uploaded 3rd Feb 2025)</p>
-                <p>Total payment amount: $296.18</p>
-                <button>Edit</button>
-                <button>Delete</button>
-            </div>
-            <!-- More cards… -->
+            {% for bill in recent_bills %}
+                <div class="card">
+                    <h3>{{ bill.category }} Bill</h3>
+                    <p>(Uploaded {{ bill.created_at.strftime('%-d %b %Y') }})</p>
+                    <p>Total payment amount: ${{ (bill.units * bill.cost_per_unit) | round(2) }}</p>
+                    <button>Edit</button>
+                    <button>Delete</button>
+                </div>
+            {% else %}
+                <p>No bills found—try uploading one!</p>
+            {% endfor %}
+
             <button class="button" style="margin-right:20px">Add Bill</button>
             <button class="button">Full bill history</button>
         </aside>
