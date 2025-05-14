@@ -88,6 +88,28 @@
             border-top: 3px solid #bbb;
             margin-top: 5%;
         }
+
+        /* Modal styles */
+        .modal {
+        display: none; /* Hidden by default */
+        position: fixed; inset: 0; /* full-screen overlay */
+        background: rgba(0,0,0,0.5);
+        justify-content: center; /* flex centering */
+        align-items: center;
+        }
+        /* inner box */
+        .modal-content {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        width: 300px;
+        position: relative;
+        }
+        /* close “×” */
+        .close {
+        position: absolute; top: 8px; right: 12px;
+        font-size: 1.5rem; cursor: pointer;
+        }
     </style>
 </head>
 
@@ -135,15 +157,40 @@
         <aside class="recent-bills">
             <h2>Your Recent Bills</h2>
             {% for bill in recent_bills %}
-                <div class="card">
-                    <h3>{{ bill.category }} Bill</h3>
-                    <p>(Uploaded {{ bill.created_at.strftime('%-d %b %Y') }})</p>
-                    <p>Total payment amount: ${{ (bill.units * bill.cost_per_unit) | round(2) }}</p>
-                    <button>Edit</button>
-                    <button>Delete</button>
-                </div>
+            <div class="card">
+                <h3>
+                {{ bill.category }} Bill —
+                {{ bill.start_date.strftime('%B %Y') }}
+                to
+                {{ bill.end_date.strftime('%B %Y') }}
+                </h3>
+                <p>(Uploaded {{ bill.created_at.strftime('%-d %b %Y') }})</p>
+                <p>Total payment amount: ${{ (bill.units * bill.cost_per_unit) | round(2) }}</p>
+
+                <!-- EDIT button (no CSRF token here) -->
+                <button
+                class="edit-btn"
+                data-id="{{ bill.id }}"
+                data-category="{{ bill.category }}"
+                data-units="{{ bill.units }}"
+                data-cost="{{ bill.cost_per_unit }}"
+                data-start="{{ bill.start_date }}"
+                data-end="{{ bill.end_date }}"
+                >Edit</button>
+
+                <!-- DELETE form with CSRF token inside it -->
+                <form
+                    action="{{ url_for('delete_entry', entry_id=bill.id) }}"
+                    method="POST"
+                    style="display:inline; margin-left:8px;"
+                    onsubmit="return confirm('Really delete this bill?');"
+                >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Delete</button>
+                </form>
+            </div>
             {% else %}
-                <p>No bills found—try uploading one!</p>
+            <p>No bills found—try uploading one!</p>
             {% endfor %}
 
             <button class="button" style="margin-right:20px">Add Bill</button>
@@ -179,6 +226,35 @@
             </div>
         </div>
     </section>
+
+    <!-- Edit Bill Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span id="editClose" class="close">&times;</span>
+            <h2>Edit Bill</h2>
+            <form id="editForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="category" id="editCategory" />
+                <div>
+                    <label>Units:</label>
+                    <input type="text" name="field_one" id="editUnits" />
+                </div>
+                <div>
+                    <label>Cost per unit:</label>
+                    <input type="text" name="field_two" id="editCost" />
+                </div>
+                <div>
+                    <label>Start date:</label>
+                    <input type="date" name="start_date" id="editStart" />
+                </div>
+                <div>
+                    <label>End date:</label>
+                    <input type="date" name="end_date" id="editEnd" />
+                </div>
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>

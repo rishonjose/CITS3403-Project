@@ -190,3 +190,34 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(err => console.error('Analytics fetch failed:', err));
   });
+
+// ——— EDIT‐MODAL HANDLER ———
+document.addEventListener('DOMContentLoaded', () => {
+  const editModal   = document.getElementById('editModal');
+  const editForm    = document.getElementById('editForm');
+  const closeBtn    = document.getElementById('editClose');
+
+  // open modal when any “Edit” button is clicked
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { id, category, units, cost, start, end } = btn.dataset;
+      editForm.action = `/entry/${id}/edit`;
+      document.getElementById('editCategory').value = category;
+      document.getElementById('editUnits').value   = units;
+      document.getElementById('editCost').value    = cost;
+      document.getElementById('editStart').value   = start;
+      document.getElementById('editEnd').value     = end;
+      editModal.style.display = 'flex';
+    });
+  });
+
+  // close modal on “×”
+  closeBtn.addEventListener('click', () => {
+    editModal.style.display = 'none';
+  });
+
+  // also close if background clicked
+  editModal.addEventListener('click', e => {
+    if (e.target === editModal) editModal.style.display = 'none';
+  });
+});
