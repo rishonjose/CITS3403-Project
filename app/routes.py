@@ -1,13 +1,14 @@
+import os
 from flask import Flask, render_template, request, flash, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user # login_user, logout_user is used for session management (implemented or not double check)
-from flask_dance.contrib.google import make_google_blueprint
+from flask_dance.contrib.google import make_google_blueprint, google
 from app import application, db
 from app.models import BillEntry, User
 from datetime import date 
 from app.forms import LoginForm, RegistrationForm, BillEntryForm
 
-google_bp = make_google_blueprint(client_id="YOUR_GOOGLE_CLIENT_ID", 
-                                  client_secret="YOUR_GOOGLE_CLIENT_SECRET", 
+google_bp = make_google_blueprint(client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"), 
+                                  client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"), 
                                   redirect_to="google_login_authorized")
 application.register_blueprint(google_bp, url_prefix='/google_login')
 
@@ -25,42 +26,41 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('uploadpage'))
     
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data.lower()).first()
-        if user and user.check_password(form.password.data):
+    login_form = LoginForm()
+    if login_form.validate_on_submit():
+        user = User.query.filter_by(email=login_form.email.data.lower()).first()
+        if user and user.check_password(login_form.password.data):
             login_user(user)
             next_page = request.args.get('next')
-            flash(f"Welcome back, {user.username}!", "success")
+            flash(f"Logged in successfully!", "success")
             return redirect(next_page or url_for('uploadpage'))
         flash("Invalid email or password", "error")
     
-    return render_template("login-signup.html", form=form)
+    return render_template("login-signup.html", login_form=login_form, reg_form=RegistrationForm())
 
 @application.route("/register", methods=["GET", "POST"])
 def register():
+    reg_form = RegistrationForm()
     if current_user.is_authenticated:
         return redirect(url_for('uploadpage'))
     
-    form = RegistrationForm()
-    if form.validate_on_submit():
+    if reg_form.validate_on_submit():
         try:
             user = User(
-                username=form.username.data,
-                email=form.email.data.lower(),
+                username=reg_form.username.data,
+                email=reg_form.email.data.lower(),
             )
-            user.set_password(form.password.data)
+            user.set_password(reg_form.password.data)
             db.session.add(user)
             db.session.commit()
             login_user(user)
-            flash(f"Account created for {form.username.data}!", "success")
+            flash(f"Account created for {reg_form.username.data}!", "success")
             return redirect(url_for('uploadpage'))
         except Exception as e:
             db.session.rollback()
             application.logger.error(f"Registration failed: {str(e)}")
             flash("Registration failed. Please try again.", "error")
-    return render_template("login-signup.html", form=form)
-
+    return render_template("login-signup.html", login_form=LoginForm(), reg_form=reg_form)
 
 def get_or_create_user(user_data):
     """ Function to check if the user exists in the database, otherwise create a new user. """
@@ -71,6 +71,67 @@ def get_or_create_user(user_data):
         db.session.commit()
     return user
 
+@application.route("/google_login/authorized")
+def google_login_authorized():
+    """Handle Google OAuth callback with full error handling"""
+    try:
+        # Check if OAuth succeeded
+        if not google.authorized:
+            flash("Access denied by Google or session expired.", "error")
+            return redirect(url_for("login"))
+
+        # Fetch and validate token
+        token = google.access_token
+        if not token:
+            flash("Invalid token from Google", "error")
+            return redirect(url_for("login"))
+
+        # Get user info (with error handling for API failures)
+        try:
+            resp = google.get("/oauth2/v2/userinfo")
+            if not resp.ok:
+                flash("Failed to fetch user data from Google", "error")
+                return redirect(url_for("login"))
+            user_info = resp.json()
+        except Exception as e:
+            application.logger.error(f"Google API error: {str(e)}")
+            flash("Google service temporarily unavailable", "error")
+            return redirect(url_for("login"))
+
+        # Extract and normalize user data
+        email = user_info["email"].lower()
+        username = user_info.get("name", email.split("@")[0])
+        profile_pic = user_info.get("picture")
+
+        # Database operations (with transaction safety)
+        try:
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                user = User(
+                    email=email,
+                    username=username,
+                    profile_pic=profile_pic,
+                    is_oauth_user=True  # Optional: flag for OAuth users
+                )
+                db.session.add(user)
+                db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            application.logger.error(f"Database error: {str(e)}")
+            flash("Account creation failed", "error")
+            return redirect(url_for("login"))
+
+        # Finalize login
+        login_user(user)
+        flash(f"Welcome, {username}!", "success")
+        return redirect(url_for("uploadpage"))
+
+    # Catch-all for unexpected errors
+    except Exception as e:
+        application.logger.critical(f"Unexpected auth error: {str(e)}")
+        flash("Login failed due to system error", "error")
+        return redirect(url_for("login"))
+    
 # LOGOUT
 @application.route("/logout")
 def logout():
