@@ -171,21 +171,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
+      //  Monthly‐Summary Renderer
+      function renderMonthlySummary(idx) {
+        // calculate totals & breakdown for that month
+        const total   = totalBill[idx];
+        const breakdown = util_labels.map(label => util_data[label][idx]);
+        const avg     = (total / util_labels.length).toFixed(2);
+        const maxIdx  = breakdown.indexOf(Math.max(...breakdown));
+        const topUtil = util_labels[maxIdx];
+        const topAmt  = breakdown[maxIdx].toFixed(2);
+
+        // build your HTML
+        const html = `
+          <h3>${month_labels[idx]} Summary</h3>
+          <p><strong>Total spend:</strong> $${total.toFixed(2)}</p>
+          <p><strong>Average per utility:</strong> $${avg}</p>
+          <p><strong>Top utility:</strong> ${topUtil} ($${topAmt})</p>
+        `;
+
+        document.getElementById('monthlySummary').innerHTML = html;
+      }
+
       // Initial UI setup
       populateMonthDropdown();
       populateUtilityDropdown();
-      selectedMonthHeading.textContent = `${monthSelect.value} Analytics`;
       selectedUtilityHeading.textContent = `${utilitySelect.value} Analytics`;
       populateMonthlyTable(latestIdx);
       populateUtilityTable(utilitySelect.value);
+      // render summary for most-recent month on page load
+      renderMonthlySummary(latestIdx);
 
       // Dropdown event listeners
       monthSelect.addEventListener('change', () => {
         const i = month_labels.indexOf(monthSelect.value);
-        selectedMonthHeading.textContent = `${monthSelect.value} Analytics`;
         barChart.data.datasets[0].data = util_labels.map(u => util_data[u][i]);
         barChart.update();
         populateMonthlyTable(i);
+        renderMonthlySummary(i);
       });
       utilitySelect.addEventListener('change', () => {
         const u = utilitySelect.value;

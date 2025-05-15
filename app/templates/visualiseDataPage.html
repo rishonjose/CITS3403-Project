@@ -91,24 +91,24 @@
 
         /* Modal styles */
         .modal {
-        display: none; /* Hidden by default */
-        position: fixed; inset: 0; /* full-screen overlay */
-        background: rgba(0,0,0,0.5);
-        justify-content: center; /* flex centering */
-        align-items: center;
+            display: none; /* Hidden by default */
+            position: fixed; inset: 0; /* full-screen overlay */
+            background: rgba(0,0,0,0.5);
+            justify-content: center; /* flex centering */
+            align-items: center;
         }
         /* inner box */
         .modal-content {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 8px;
-        width: 300px;
-        position: relative;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            width: 300px;
+            position: relative;
         }
         /* close “×” */
         .close {
-        position: absolute; top: 8px; right: 12px;
-        font-size: 1.5rem; cursor: pointer;
+            position: absolute; top: 8px; right: 12px;
+            font-size: 1.5rem; cursor: pointer;
         }
     </style>
 </head>
@@ -138,9 +138,11 @@
     <div class="Monthly-Analytics">
         <article class="monthly-analytics">
             <h2>Monthly Analytics Overview</h2>
-            <label for="monthSelect" class="dropdown">Select date</label>
+            <label for="monthSelect" class="dropdown">Select Month:</label>
             <select id="monthSelect" class="dropdown"></select>
             <canvas id="barChart"></canvas>
+            <!-- Monthly Summary Card -->
+            <div id="monthlySummary" class="card"></div>
             <div class="Tables">
                 <button class="button" onclick="toggleMonthlyView()">Switch to Table View</button>
             </div>
@@ -150,8 +152,7 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <p><b id="selectedMonthHeading"></b><br><small>(Electrical, Water, Wi-Fi, Gas, Other)</small></p>
-            <div class="card" style="height:220px;"></div>
+            <p><b id="selectedMonthHeading"></b></p>
         </article>
 
         <aside class="recent-bills">
@@ -192,9 +193,7 @@
             <p>No bills found—try uploading one!</p>
             {% endfor %}
 
-            <button class="button" style="margin-right:20px" 
-                    onclick="window.location.href='{{ url_for('uploadpage') }}'">
-                    Add Bill</button>
+            <button class="button" style="margin-right:20px" onclick="window.location.href='{{ url_for('uploadpage') }}'">Add Bill</button>
             <button class="button" onclick="window.location.href='{{ url_for('bill_history') }}'">Full bill history</button>
         </aside>
     </div>
