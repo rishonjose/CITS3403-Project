@@ -244,19 +244,19 @@
     .social .yt { background-image: url('youtube.svg'); }
     .social .ig { background-image: url('instagram.svg'); }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='js/stylesheet.css') }}">
 </head>
 <body>
-
   <!-- HEADER / HERO -->
+  <header class="nav">
+    <h1 class="logo">Meter</h1>
+    <a href="#" class="button0" data-page-redirect data-href="{{ url_for('profile') }}">My Profile</a>
+  </header>
   <header class="hero">
-    <nav>
-      <div class="logo">Meter</div>
-      <a href="#" class="account-btn" data-page-redirect data-href="{{ url_for('profile') }}">My Profile</a>
-    </nav>
     <div class="hero-content">
-      <h1>Upload Your Data Here</h1>
+      <h1 class="title" style="line-height: 100px">Upload Your Data Here</h1>
       <p>Redefining utility tracking — smarter, simpler, cleaner.</p>
-      <label class="file-btn">
+      <label class="button0 file-btn">
         Choose PDF
         <input type="file" accept="application/pdf" />
       </label>
@@ -270,10 +270,10 @@
       
       <div class="tabs">
         <button class="active" data-type="Electricity">Electricity</button>
-        <button data-type="Water">Water</button>
-        <button data-type="Gas">Gas</button>
-        <button data-type="WiFi">WiFi</button>
-        <button data-type="Other">Other</button>
+        <button data-type="Water" class="button0">Water</button>
+        <button data-type="Gas" class="button0">Gas</button>
+        <button data-type="WiFi" class="button0">WiFi</button>
+        <button data-type="Other" class="button0">Other</button>
       </div>
 
       <form class="data-form" action="{{ url_for('uploadpage') }}" method="POST">

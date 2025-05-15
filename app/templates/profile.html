@@ -26,20 +26,19 @@
             border-color: rgba(239, 68, 68, 0.5);
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='js/stylesheet.css') }}">
 </head>
 
 <body class="bg-gray-100 font-sans">
     <div class="min-h-screen flex flex-col">
         <!-- Navbar -->
-        <nav class="bg-black text-white py-4">
-            <div class="container mx-auto px-4 flex justify-between items-center">
-                <a href="/" class="text-2xl font-bold">Meter</a>
-                <div class="flex space-x-4">
-                    <a href="#family-section" class="px-4 py-2 bg-gray-700 rounded-full hover:bg-gray-600 transition">My Family</a>
-                    <a href="/logout" class="px-4 py-2 bg-red-500 rounded-full hover:bg-red-600 transition">Logout</a>
-                </div>
+        <header class="nav">
+            <a href="/" class="logo">Meter</a>
+            <div class="flex space-x-4">
+                <a href="#family-section" class="button0">My Family</a>
+                <a href="/logout" class="button1">Logout</a>
             </div>
-        </nav>
+        </header>
 
         <!-- Main Content -->
         <div class="container mx-auto px-4 py-8 flex-1">
@@ -59,7 +58,7 @@
                         <h1 class="text-3xl font-bold text-gray-800">{{ user.name }}</h1>
                         <p class="text-gray-600 mt-2">{{ user.email }}</p>
                         <div class="mt-4">
-                            <button class="px-4 py-2 bg-gray-800 text-white rounded-full hover:bg-gray-900 transition">
+                            <button class="button0">
                                 Edit Profile
                             </button>
                         </div>
@@ -148,21 +147,21 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-gray-700 mb-2">First Name</label>
-                            <input type="text" value="{{ user.first_name }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+                            <label class="block input-label">First Name</label>
+                            <input type="text" value="{{ user.first_name }}" class="w-full input-style">
                         </div>
                         <div>
-                            <label class="block text-gray-700 mb-2">Last Name</label>
-                            <input type="text" value="{{ user.last_name }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+                            <label class="block input-label">Last Name</label>
+                            <input type="text" value="{{ user.last_name }}" class="w-full input-style">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-gray-700 mb-2">Email Address</label>
-                        <input type="email" value="{{ user.email }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+                        <label class="block input-label">Email Address</label>
+                        <input type="email" value="{{ user.email }}" class="w-full input-style">
                     </div>
                     <div>
-                        <label class="block text-gray-700 mb-2">Password</label>
-                        <input type="password" placeholder="Enter new password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+                        <label class="block input-label">Password</label>
+                        <input type="password" placeholder="Enter new password" class="w-full input-style">
                     </div>
                     <div class="flex justify-end">
                         <button type="submit" class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">Save Changes</button>
