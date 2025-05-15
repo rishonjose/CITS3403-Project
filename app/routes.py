@@ -9,6 +9,7 @@ from collections import defaultdict
 from jinja2 import TemplateNotFound
 from flask_wtf.csrf import CSRFProtect
 from datetime import date, datetime
+from calendar import monthrange
 from flask_login import (
     login_user, logout_user,
     login_required, current_user
@@ -257,12 +258,30 @@ def analytics_api():
     }
     colours = ['orange','blue','green','violet','grey']
 
+    # figure out last two months' totals
+    if len(months) >= 2:
+        this_total = totalBill[-1]
+        prev_total = totalBill[-2]
+        pct_change = round((this_total - prev_total) / prev_total * 100, 1)
+    else:
+        this_total = prev_total = pct_change = None
+
+    # days in that last month
+    last_mon_str = months[-1]                  # e.g. "May 2025"
+    dt = datetime.strptime(last_mon_str, '%b %Y')
+    days = monthrange(dt.year, dt.month)[1]   # 31, 30, etc.
+
+    avg_per_day = round(this_total / days, 2) if this_total else None
+    
     return jsonify({
         'month_labels': months,
         'util_labels' : utils,
         'util_colours': colours,
         'totalBill'   : totalBill,
-        'util_data'   : util_data
+        'util_data'   : util_data,
+        'this_month_total': this_total,
+        'pct_change'  : pct_change,
+        'avg_per_day' : avg_per_day,
     })
 
 

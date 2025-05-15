@@ -201,30 +201,34 @@
 
     <!-- Utilities Analytics -->
     <section class="utility-section">
-        <header>
-            <h1 id="selectedUtilityHeading" style="margin-left:100px;"></h1>
-            <label for="utilitySelect" class="dropdown">Select Category</label>
-            <select id="utilitySelect" class="dropdown"></select>
-        </header>
-        <div style="display: flex; justify-content: space-around; margin: 40px 100px;">
-            <div style="flex:2;">
-                <canvas id="utilityChart"></canvas>
-                <div class="Tables">
-                    <button class="button" onclick="toggleUtilityView()">Switch to Table View</button>
+        <article class="utility-analytics">
+            <header>
+                <h1 id="selectedUtilityHeading">…</h1>
+                <label for="utilitySelect" class="dropdown">Select Category</label>
+                <select id="utilitySelect" class="dropdown"></select>
+            </header>
+            <div class="utility-content" style="display: flex; justify-content: space-around; margin: 40px 100px;">
+                <!-- left column: chart/table toggle -->
+                <div class="utility-chart" style="flex:2;">
+                    <canvas id="utilityChart"></canvas>
+                    <div class="Tables">
+                        <button class="button" onclick="toggleUtilityView()">Switch to Table View</button>
+                    </div>
+                    <div id="utilityTable" class="Tables" style="display: none;">
+                        <table class="Tables-collapse">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
-                <div id="utilityTable" class="Tables" style="display: none;">
-                    <table class="Tables-collapse">
-                        <thead></thead>
-                        <tbody></tbody>
-                    </table>
+                <!-- right column: the three cards -->
+                <div class="utility-cards" style="flex:1;">
+                    <div class="card" id="monthlyUsageInsights"></div>
+                    <div class="card" id="averageUsageInsights"></div>
+                    <div class="card" id="tipsToSave"></div>
                 </div>
             </div>
-            <div style="flex:1;">
-                <div class="card"><h3>Monthly Usage Insights</h3></div>
-                <div class="card"><h3>Average Usage Insights</h3></div>
-                <div class="card"><h3>Tips to Save</h3></div>
-            </div>
-        </div>
+        </article>
     </section>
 
     <!-- Edit Bill Modal -->

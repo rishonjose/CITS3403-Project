@@ -39,6 +39,36 @@ document.addEventListener('DOMContentLoaded', () => {
       const { util_labels, util_colours, month_labels, totalBill, util_data } = util_Data;
       const latestIdx = month_labels.length - 1;
 
+      // define custom tips per category:
+      const tipsMap = {
+        Electricity: [
+          "Unplug appliances when not in use",
+          "Switch to LED or energy-efficient bulbs",
+          "Run heavy appliances (washer/dryer) off-peak"
+        ],
+        Water: [
+          "Fix leaky faucets promptly",
+          "Install a low-flow shower head",
+          "Only run dishwasher/washing machine with full loads"
+        ],
+        Gas: [
+          "Use a lid on pots and pans to cook more efficiently",
+          "Service your gas heater annually",
+          "Lower thermostat by 1°C to save ~10% gas"
+        ],
+        WiFi: [
+          "Restart your router monthly",
+          "Update firmware for security",
+          "Disable guest networks when not needed"
+        ],
+        Other: [
+          "Track subscriptions—cancel unused ones",
+          "Bundle services for volume discounts",
+          "Review quarterly spending patterns"
+        ]
+      };
+
+
       // Doughnut Chart (most recent month)
       const pieCtx = document.getElementById('doughnut').getContext('2d');
       new Chart(pieCtx, {
@@ -192,6 +222,45 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('monthlySummary').innerHTML = html;
       }
 
+      //  Utility‐Cards Renderer
+      function updateUtilityCards(util, monthIdx) {
+        const arr       = util_data[util];
+        const cost      = arr[monthIdx];
+        const avgMonth  = (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2);
+
+        // figure out how many days in that month
+        const [monName, year] = month_labels[monthIdx].split(' ');
+        const mNum             = new Date(`${monName} 1, ${year}`).getMonth();  
+        const daysInMonth      = new Date(year, mNum+1, 0).getDate();
+
+        const avgDay    = (cost / daysInMonth).toFixed(2);
+
+        // 1) Monthly Usage Insights
+        document.getElementById('monthlyUsageInsights').innerHTML = `
+          <h3>Monthly Usage Insights</h3>
+          <p><strong>${util}</strong> this month: $${cost.toFixed(2)}</p>
+          <p><strong>Avg monthly:</strong> $${avgMonth}</p>
+          <p><strong>Avg daily:</strong> $${avgDay}</p>
+        `;
+
+        // 2) Average Usage Insights
+        //    (you could add more here – e.g. highest/lowest month for that util)
+        document.getElementById('averageUsageInsights').innerHTML = `
+          <h3>Average Usage Insights</h3>
+          <p>Overall avg per month: $${avgMonth}</p>
+        `;
+
+        // 3) Tips to Save
+        const tipsEl = document.getElementById('tipsToSave');
+        const utilTips = tipsMap[util] || [];
+        tipsEl.innerHTML = `
+          <h3>Tips to Save</h3>
+          <ul>
+            ${utilTips.map(t => `<li>${t}</li>`).join('')}
+          </ul>
+        `;
+      }
+
       // Initial UI setup
       populateMonthDropdown();
       populateUtilityDropdown();
@@ -200,6 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
       populateUtilityTable(utilitySelect.value);
       // render summary for most-recent month on page load
       renderMonthlySummary(latestIdx);
+      updateUtilityCards(utilitySelect.value, latestIdx);
 
       // Dropdown event listeners
       monthSelect.addEventListener('change', () => {
@@ -208,6 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         barChart.update();
         populateMonthlyTable(i);
         renderMonthlySummary(i);
+        updateUtilityCards(utilitySelect.value, newIdx);
       });
       utilitySelect.addEventListener('change', () => {
         const u = utilitySelect.value;
@@ -217,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         utilityChart.data.datasets[0].borderColor = util_colours[util_labels.indexOf(u)];
         utilityChart.update();
         populateUtilityTable(u);
+        updateUtilityCards(utilitySelect.value, latestIdx);
       });
 
     })
