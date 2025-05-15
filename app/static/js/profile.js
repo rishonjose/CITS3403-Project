@@ -1,14 +1,23 @@
+/********************************
+ * FAMILY MANAGEMENT CONTROLLER *
+ ********************************/
+console.log("Family Manager JS loaded!");
+
 /*********************
  * API COMMUNICATION *
  *********************/
-const API_BASE = '/api/family'; // Update with your actual endpoint
+const API_BASE = '/api/family'; // Base endpoint for family operations
 
-// Helper to get CSRF token
+// Retrieve CSRF token from the form
 function getCSRFToken() {
     return document.querySelector('input[name="csrf_token"]')?.value || '';
 }
 
-// Family Member API Calls
+/**
+ * Deletes a family member from the server
+ * @param {string} memberId - ID of member to delete
+ * @returns {Promise<Object>} Server response
+ */
 async function deleteMember(memberId) {
     try {
         const response = await fetch(`${API_BASE}/${memberId}`, {
@@ -25,6 +34,11 @@ async function deleteMember(memberId) {
     }
 }
 
+/**
+ * Adds a new family member to the server
+ * @param {Object} memberData - {first_name, last_name, email}
+ * @returns {Promise<Object>} Server response with new member data
+ */
 async function addMember(memberData) {
     try {
         const response = await fetch(API_BASE, {
@@ -45,7 +59,12 @@ async function addMember(memberData) {
 /********************
  * UI COMPONENTS *
  ********************/
-// Toast notification system
+
+/**
+ * Shows a temporary notification toast
+ * @param {string} message - Text to display
+ * @param {string} type - success/error/warning/info
+ */
 function showToast(message, type = 'info') {
     const colors = {
         success: 'bg-green-500',
@@ -59,18 +78,24 @@ function showToast(message, type = 'info') {
     toast.textContent = message;
     document.body.appendChild(toast);
     
+    // Animate in
     setTimeout(() => {
         toast.classList.remove('translate-y-10', 'opacity-0');
         toast.classList.add('translate-y-0', 'opacity-100');
     }, 10);
     
+    // Auto-remove after 5 seconds
     setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-10');
         setTimeout(() => toast.remove(), 300);
     }, 5000);
 }
 
-// Member card creation
+/**
+ * Creates a new family member card element
+ * @param {Object} member - Member data from server
+ * @returns {HTMLElement} Configured member card
+ */
 function createMemberCard(member) {
     const initials = `${member.first_name.charAt(0)}${member.last_name.charAt(0)}`.toUpperCase();
     const newMember = document.createElement('div');
@@ -100,12 +125,17 @@ function createMemberCard(member) {
     
     setupDragEvents(newMember);
     setupEditButton(newMember.querySelector('.edit-member'));
-    membersContainer.appendChild(newMember);
+    return newMember;
 }
 
 /********************
  * EVENT HANDLERS *
  ********************/
+
+/**
+ * Sets up drag events for a member card
+ * @param {HTMLElement} member - Member card element
+ */
 function setupDragEvents(member) {
     member.addEventListener('dragstart', function() {
         draggedMember = this;
@@ -122,12 +152,17 @@ function setupDragEvents(member) {
     });
 }
 
+/**
+ * Sets up edit functionality for a member card
+ * @param {HTMLElement} button - Edit button element
+ */
 function setupEditButton(button) {
     button.addEventListener('click', function() {
         const memberCard = this.closest('.family-member');
         const name = memberCard.querySelector('h3').textContent;
         const email = memberCard.querySelector('p.text-xs')?.textContent || '';
         
+        // Create inline edit form
         const form = document.createElement('form');
         form.className = 'p-4 bg-white rounded-lg shadow-xl absolute top-0 left-0 w-full z-10';
         form.innerHTML = `
@@ -144,10 +179,13 @@ function setupEditButton(button) {
         
         memberCard.appendChild(form);
         
+        // Cancel button handler
         form.querySelector('.cancel-edit').addEventListener('click', () => form.remove());
+        
+        // Submit handler
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // Implement update functionality here
+            // TODO: Implement update functionality
             form.remove();
         });
     });
@@ -158,7 +196,8 @@ function setupEditButton(button) {
  ********************/
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Family Manager initialized");
-    
+    console.log("DOM ready - family buttons should work now");
+
     // DOM Elements
     const addButton = document.getElementById('add-family-member');
     const newMemberForm = document.getElementById('new-member-form');
@@ -167,8 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteZone = document.getElementById('delete-zone');
     const addMemberForm = document.getElementById('add-member-form');
     let draggedMember = null;
-    
-    // Load initial data
+
+    /**
+     * Loads family members from server
+     */
     async function loadFamilyMembers() {
         try {
             const response = await fetch(API_BASE);
@@ -176,32 +217,35 @@ document.addEventListener('DOMContentLoaded', () => {
             
             membersContainer.innerHTML = '';
             data.members.forEach(member => {
-                createMemberCard(member);
+                membersContainer.appendChild(createMemberCard(member));
             });
         } catch (error) {
             console.error('Failed to load members:', error);
             showToast('Failed to load family members', 'error');
         }
     }
-    
-    // Event Listeners
+
+    // Event: Toggle Add Member Form
     addButton.addEventListener('click', () => {
         newMemberForm.classList.toggle('hidden');
     });
-    
+
+    // Event: Cancel Add Member
     cancelButton.addEventListener('click', () => {
         newMemberForm.classList.add('hidden');
     });
-    
+
+    // Drag and Drop Handlers
     deleteZone.addEventListener('dragover', function(e) {
         e.preventDefault();
         this.classList.add('active');
     });
-    
+
     deleteZone.addEventListener('dragleave', function() {
         this.classList.remove('active');
     });
-    
+
+    // Event: Delete Member on Drop
     deleteZone.addEventListener('drop', async function(e) {
         e.preventDefault();
         if (!draggedMember) return;
@@ -225,7 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         this.classList.remove('active', 'hidden');
     });
-    
+
+    // Event: Add New Member Form Submission
     addMemberForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -247,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await addMember(formData);
         
         if (result.success) {
-            createMemberCard(result.member);
+            membersContainer.appendChild(createMemberCard(result.member));
             this.reset();
             newMemberForm.classList.add('hidden');
             showToast('Member added', 'success');
@@ -258,17 +303,11 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Add Member';
     });
-    
-    // Initial load
+
+    // Initial Data Load
     loadFamilyMembers();
 
-    // Edit Profile Button (scroll to form)
-    document.querySelector('.bg-gray-800.text-white')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        document.querySelector('.bg-white form')?.scrollIntoView({ behavior: 'smooth' });
-    });
-
-    // Profile Picture Upload
+    // Profile Picture Upload Handler
     const profilePicBtn = document.querySelector('.relative button');
     if (profilePicBtn) {
         profilePicBtn.addEventListener('click', (e) => {

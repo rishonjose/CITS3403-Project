@@ -160,7 +160,8 @@
       height: 24px;
       margin-right: 0.5rem;
     }
-    .form-group input {
+    .form-group input, 
+    .form-group select {
       flex: 1;
       border: none;
       background: transparent;
@@ -175,19 +176,18 @@
       cursor: pointer;
     }
 
-    /* Disabled-looking submit */
-    .btn.submit.disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    /* Error message */
+    /* Error styles */
     .error {
       color: #c00;
       font-size: 0.9rem;
       margin-top: -1rem;
       margin-bottom: 1rem;
-      display: none;
+    }
+
+    /* Disabled-looking submit */
+    .btn.submit.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     /* ========== FOOTER ========== */
@@ -239,10 +239,10 @@
       display: inline-block;
       background-size: cover;
     }
-    .social .fb { background-image: url('fb.svg'); }
-    .social .linkedin { background-image: url('linkedin.svg'); }
-    .social .yt { background-image: url('youtube.svg'); }
-    .social .ig { background-image: url('instagram.svg'); }
+    .social .fb { background-image: url('{{ url_for('static', filename='images/fb.svg') }}'); }
+    .social .linkedin { background-image: url('{{ url_for('static', filename='images/linkedin.svg') }}'); }
+    .social .yt { background-image: url('{{ url_for('static', filename='images/youtube.svg') }}'); }
+    .social .ig { background-image: url('{{ url_for('static', filename='images/instagram.svg') }}'); }
   </style>
 </head>
 <body>
@@ -251,7 +251,11 @@
   <header class="hero">
     <nav>
       <div class="logo">Meter</div>
-      <a href="#" class="account-btn" data-page-redirect data-href="{{ url_for('profile') }}">My Profile</a>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('profile') }}" class="account-btn">My Profile</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="account-btn">Login</a>
+      {% endif %}
     </nav>
     <div class="hero-content">
       <h1>Upload Your Data Here</h1>
@@ -276,30 +280,80 @@
         <button data-type="Other">Other</button>
       </div>
 
-      <form class="data-form" action="{{ url_for('uploadpage') }}" method="POST">
+      <form class="data-form" method="POST" action="{{ url_for('uploadpage') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="category" id="form-category" value="Electricity" />
-      
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mb-4">
+            {% for category, message in messages %}
+              <div class="p-3 rounded text-sm font-medium text-white
+              {% if category == 'success' %} bg-green-500
+              {% elif category == 'error' %} bg-red-500
+              {% elif category == 'info' %} bg-blue-500
+              {% else %} bg-gray-500 {% endif %}">
+              {{ message }}
+              </div>
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <!-- Units Field -->
         <div class="form-group">
           <img id="icon-one" src="{{ url_for('static', filename='images/bolt-icon.svg') }}" alt="Icon" />
-          <input id="field-one" name="field_one" type="text" placeholder="Energy Consumed" autocomplete="off" />
+          {{ form.units(class="w-full border-none bg-transparent focus:outline-none", id="field-one", placeholder="Energy Consumed") }}
         </div>
-      
+        {% if form.units.errors %}
+          <div class="error">
+            {% for error in form.units.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Cost Field -->
         <div class="form-group">
           <img id="icon-two" src="{{ url_for('static', filename='images/cost-icon.svg') }}" alt="Icon" />
-          <input id="field-two" name="field_two" type="text" placeholder="Cost per kWh" autocomplete="off" />
+          {{ form.cost_per_unit(class="w-full border-none bg-transparent focus:outline-none", id="field-two", placeholder="Cost per kWh") }}
         </div>
-      
+        {% if form.cost_per_unit.errors %}
+          <div class="error">
+            {% for error in form.cost_per_unit.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Start Date Field -->
         <div class="form-group">
           <img src="{{ url_for('static', filename='images/calendar-icon.svg') }}" alt="Start icon" />
           <label for="start-date">Start Date:</label>
-          <input id="start-date" name="start_date" type="date" />
+          {{ form.start_date(class="w-full border-none bg-transparent focus:outline-none", id="start-date") }}
         </div>
-      
+        {% if form.start_date.errors %}
+          <div class="error">
+            {% for error in form.start_date.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- End Date Field -->
         <div class="form-group">
           <img src="{{ url_for('static', filename='images/calendar-icon.svg') }}" alt="End icon" />
           <label for="end-date">End Date:</label>
-          <input id="end-date" name="end_date" type="date" />
+          {{ form.end_date(class="w-full border-none bg-transparent focus:outline-none", id="end-date") }}
         </div>
+        {% if form.end_date.errors %}
+          <div class="error">
+            {% for error in form.end_date.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
 
         <button type="submit" class="btn submit disabled">Submit Details</button>
       </form>
@@ -373,10 +427,8 @@
           fieldOne.placeholder = one;
           fieldTwo.placeholder = two;
           categoryIn.value = selectedType;
-
           iconOne.src = `${staticBasePath}${iconMap[selectedType]}`;
           iconTwo.src = `${staticBasePath}cost-icon.svg`;
-
           fieldOne.value = '';
           fieldTwo.value = '';
           updateSubmitState();
@@ -409,18 +461,6 @@
         }
       });
   
-      document.querySelector('.data-form')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        submitBtn.textContent = 'Submitted!';
-        submitBtn.style.backgroundColor = 'black';
-        submitBtn.style.color = 'white';
-        fieldOne.value = '';
-        fieldTwo.value = '';
-        startDate.value = '';
-        endDate.value = '';
-        updateSubmitState();
-      });
-  
       updateSubmitState();
     });
   </script>
@@ -429,4 +469,3 @@
   
 </body>
 </html>
-

@@ -95,8 +95,12 @@
     <div class="header">
         <div class="logo">Meter</div>
         <div>
-            <button class="button" data-page-redirect data-href="{{ url_for('profile') }}">My Family</button>
-            <button class="button" data-page-redirect data-href="{{ url_for('profile') }}">My Profile</button>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="button">Logout</a>
+                <a href="{{ url_for('profile') }}" class="button">My Profile</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="button">Login</a>
+            {% endif %}
         </div>
     </div>
 
@@ -149,34 +153,26 @@
             </div>
         </div>
 
-        <!-- Right Your Recent Bills Section -->
+        <!-- Right "Your Recent Bills" Section -->
         <div class="recent-bills">
             <h2>Your Recent Bills</h2>
+            {% if not entries %}
             <div class="card">
-                <h3>January Electrical Bill</h3>
-                <p>(Uploaded 3rd Feb 2025)</p>
-                <p>Monthly electrical bill for January.</p>
-                <p>Total payment amount: $296.18</p>
+                <p>No bills found. Add your first bill!</p>
+            </div>
+            {% endif %}
+
+            {% for entry in entries %}
+            <div class="card">
+                <h3>{{ entry.start_date.strftime('%B') }} {{ entry.category }} Bill</h3>
+                <p>(Uploaded {{ entry.created_at.strftime('%d %b %Y') }})</p>
+                <p>Monthly {{ entry.category|lower }} bill for {{ entry.start_date.strftime('%B') }}.</p>
+                <p>Total payment amount: ${{ "%.2f"|format(entry.units * entry.cost_per_unit) }}</p>
                 <button>Edit</button>
                 <button>Delete</button>
             </div>
-            <div class="card">
-                <h3>January Water Bill</h3>
-                <p>(Uploaded 3rd feb 2025)</p>
-                <p>Monthly water bill for January.</p>
-                <p>Total payment amount: $204.15</p>
-                <button>Edit</button>
-                <button>Delete</button>
-            </div>
-            <div class="card">
-                <h3>January Wi-Fi Bill</h3>
-                <p>(Uploaded 1st feb 2025)</p>
-                <p>Monthly Wi-Fi bill for January.</p>
-                <p>Total payment amount: $80.00</p>
-                <button>Edit</button>
-                <button>Delete</button>
-            </div>
-            <button class="button" style="margin-right:20px">Add Bill</button>
+            {% endfor %}
+            <button class="button" style="margin-right:20px" onclick="window.location.href='{{ url_for('uploadpage') }}'">Add Bill</button>
             <button class="button">Full bill history</button>
         </div>
     </div>
@@ -231,4 +227,3 @@
     <script src="{{ url_for('static', filename='js/visualiseData.js') }}"></script>
 </body>
 </html>
-

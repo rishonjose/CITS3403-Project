@@ -2,29 +2,43 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
-from flask_wtf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect
+from dotenv import load_dotenv
+from app.config import Config
+import os
 
+load_dotenv() # Load environment variables
+application = Flask(__name__) # Create application instance and apply configuration
+
+application.config.from_object(Config)
+if not application.config.get('SECRET_KEY'):
+    raise ValueError("SECRET_KEY not configured! Check .env and config.py")
+
+# Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
-login_manager = LoginManager()
-csrf = CSRFProtect()
+login = LoginManager()
+csrf = CSRFProtect(application)
 
-application = Flask(__name__)
-application.config['SECRET_KEY'] = 'amber_pearl_latte_is_the_best'
+# Configure login manager
+login.login_view = 'login'
+login.session_protection = 'strong'
+
+# Configure database
 application.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+application.config["OAUTHLIB_INSECURE_TRANSPORT"] = True  # Dev only
 
+# Initialize extensions with app
 db.init_app(application)
 migrate.init_app(application, db)
-login_manager.init_app(application)
+login.init_app(application)
 csrf.init_app(application)
 
-login_manager.login_view = 'login'
+# Import routes and models AFTER initializations
+from app import routes, models
 
-from app.models import User
-
-@login_manager.user_loader
+# User loader callback
+@login.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
-
-from app import routes
+    return models.User.query.get(int(user_id))
