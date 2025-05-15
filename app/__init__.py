@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
-from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from app.config import Config
 import os
