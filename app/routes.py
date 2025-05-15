@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, flash, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user # login_user, logout_user is used for session management (implemented or not double check)
 from flask_dance.contrib.google import make_google_blueprint, google
+from flask_wtf.csrf import CSRFProtect
 from app import application, db
 from app.models import BillEntry, User
 from datetime import date 
