@@ -52,6 +52,10 @@
       max-width: 1024px;
       margin: 0 auto 2rem;
     }
+    header.hero nav .nav-actions {
+      display: flex;
+      gap: 0.5rem;    /* space between Dashboard & My Profile */
+    }
     header.hero nav .logo {
       font-size: 1.25rem;
       font-weight: bold;
@@ -280,7 +284,23 @@
   <header class="hero">
     <nav>
       <div class="logo">Meter</div>
-      <a href="#" class="account-btn" data-page-redirect data-href="{{ url_for('profile') }}">My Profile</a>
+      <div class="nav-actions">
+        <!-- Dashboard button -->
+        <a
+          href="#"
+          class="account-btn"
+          data-page-redirect
+          data-href="{{ url_for('visualise_data') }}"
+        >Dashboard</a>
+
+        <!-- Profile button -->
+        <a
+          href="#"
+          class="account-btn"
+          data-page-redirect
+          data-href="{{ url_for('profile') }}"
+        >My Profile</a>
+      </div>
     </nav>
     <div class="hero-content">
       <h1>Upload Your Data Here</h1>
