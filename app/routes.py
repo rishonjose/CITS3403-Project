@@ -13,6 +13,10 @@ google_bp = make_google_blueprint(client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"),
 application.register_blueprint(google_bp, url_prefix='/google_login')
 
 
+
+# Initialize CSRF protection
+csrf = CSRFProtect(application)
+
 # Homepage route
 @application.route("/")
 @application.route("/home")

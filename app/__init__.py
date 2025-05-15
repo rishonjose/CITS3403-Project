@@ -33,11 +33,10 @@ application.config["OAUTHLIB_INSECURE_TRANSPORT"] = True  # Dev only
 db.init_app(application)
 migrate.init_app(application, db)
 login.init_app(application)
-
+csrf.init_app(application)
 
 # Import routes and models AFTER initializations
 from app import routes, models
-
 
 # User loader callback
 @login.user_loader
