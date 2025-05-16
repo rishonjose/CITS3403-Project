@@ -30,6 +30,7 @@ class RegistrationForm(FlaskForm):
         DataRequired(message="Please confirm your password"),
         EqualTo('password', message="Passwords must match")
     ])
+    role = SelectField('Role', choices=[('user', 'User'), ('admin', 'Admin')], validators=[DataRequired()])
     submit = SubmitField('Sign Up')
 
     def validate_email(self, email):
