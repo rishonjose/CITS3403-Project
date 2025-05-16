@@ -11,7 +11,7 @@ class UserTests(unittest.TestCase):
         db.create_all()
 
     def test_register_user(self):
-        user = User(username='test',email="test@test")
+        user = User(username='test',email="test@test",profile_pic='default.png')
         user.set_password('pass')
         db.session.add(user)
         db.session.commit()
