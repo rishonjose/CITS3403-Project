@@ -17,6 +17,12 @@ class UserTests(unittest.TestCase):
         db.session.commit()
         fetched_user = User.query.filter_by(username='test').first()
         self.assertIsNotNone(fetched_user)
+    
+    def test_password_hashing(self):
+        user = User(username='test2', email='test2@test.com')
+        user.set_password('mypassword')
+        self.assertTrue(user.check_password('mypassword'))
+        self.assertFalse(user.check_password('wrongpassword'))
 
     def tearDown(self):
         db.session.remove()
