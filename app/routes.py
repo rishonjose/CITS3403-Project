@@ -15,7 +15,6 @@ from flask_login import (
     login_user, logout_user,
     login_required, current_user
 )
-
 from app import application, db
 from app.models import BillEntry, User
 from app.forms import LoginForm, RegistrationForm, BillEntryForm
@@ -73,6 +72,7 @@ def register():
             user = User(
                 username=reg_form.username.data,
                 email=reg_form.email.data.lower(),
+                profile_pic="images/default_profile.png",  # Default profile picture
             )
             user.set_password(reg_form.password.data)
             db.session.add(user)

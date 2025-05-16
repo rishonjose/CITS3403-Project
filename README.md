@@ -46,25 +46,29 @@ Built with Flask for backend logic, SQLAlchemy for database management, and Char
    cd CITS3403-Project
 
 2. # Activate environment:
-python -m venv venv
-source venv/bin/activate  # Linux/MacOS
-venv\Scripts\activate     # Windows
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/MacOS
+   venv\Scripts\activate     # Windows
 
-3. # Install Dependencies
-pip install -r requirements.txt
+4. # Install Dependencies
+   ```bash
+   pip install -r requirements.txt
 
-4. # Create Your Own .env File
+6. # Create Your Own .env File
 Follow the instructions set out in .env.example to set up your own SECRET_KEY, aswell as GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET
 
 5. # Initialise The Database
-flask db init
-flask db migrate
-flask db upgrade
+   ```bash
+   flask db init
+   flask db migrate
+   flask db upgrade
 
-6. # Run The App
-export FLASK_APP=run.py  # Linux/MacOS
-set FLASK_APP=run.py     # Windows
-flask run
+7. # Run The App
+   ```bash
+   export FLASK_APP=run.py  # Linux/MacOS
+   set FLASK_APP=run.py     # Windows
+   flask run
 Then access the application by going to your preferred web browser, and type in http://localhost:5000 or http://127.0.0.1:5000/
 
 ## Testing
