@@ -2,9 +2,10 @@ import os
 from werkzeug.utils import secure_filename
 from app.utils import parse_pdf_bill
 from flask import (
-    render_template, request, flash,
+    Flask, render_template, request, flash,
     redirect, url_for, jsonify, abort
 )
+from flask_dance.contrib.google import make_google_blueprint, google
 from collections import defaultdict
 from jinja2 import TemplateNotFound
 from flask_wtf.csrf import CSRFProtect
@@ -17,6 +18,12 @@ from flask_login import (
 
 from app import application, db
 from app.models import BillEntry, User
+from app.forms import LoginForm, RegistrationForm, BillEntryForm
+
+google_bp = make_google_blueprint(client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"), 
+                                  client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"), 
+                                  redirect_to="google_login_authorized")
+application.register_blueprint(google_bp, url_prefix='/google_login')
 
 # Initialize CSRF protection
 csrf = CSRFProtect(application)
@@ -34,51 +41,112 @@ def allowed(filename):
 def home():
     return render_template("landingpage.html")
 
-
 # ─── AUTH ──────────────────────────────────────────────────────────────────────
-
+# Login/signup page
 @application.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        email = request.form.get("email", "").lower().strip()
-        pw    = request.form.get("password", "")
-        user  = User.query.filter_by(email=email).first()
-        if user and user.check_password(pw):
+    if current_user.is_authenticated:
+      return redirect(url_for('uploadpage'))
+    
+    login_form = LoginForm()
+    if login_form.validate_on_submit():
+        user = User.query.filter_by(email=login_form.email.data.lower()).first()
+        if user and user.check_password(login_form.password.data):
             login_user(user)
-            return redirect(url_for("uploadpage"))
-        flash("Invalid email or password.", "error")
-        return redirect(url_for("login"))
-    return render_template("login-signup.html")
-
+            next_page = request.args.get('next')
+            flash("Logged in successfully!", "success")
+            return redirect(next_page or url_for('uploadpage'))
+        flash("Invalid email or password", "error")
+    
+    return render_template("login-signup.html", 
+                         login_form=login_form, 
+                         reg_form=RegistrationForm())
 
 @application.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        email    = request.form.get("email", "").lower().strip()
-        pw       = request.form.get("password", "")
-        confirm  = request.form.get("confirm_password", "")
+    reg_form = RegistrationForm()
+    if current_user.is_authenticated:
+        return redirect(url_for('uploadpage'))
+    
+    if reg_form.validate_on_submit():
+        try:
+            user = User(
+                username=reg_form.username.data,
+                email=reg_form.email.data.lower(),
+            )
+            user.set_password(reg_form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            flash(f"Account created for {reg_form.username.data}!", "success")
+            return redirect(url_for('uploadpage'))
+        except Exception as e:
+            db.session.rollback()
+            application.logger.error(f"Registration failed: {str(e)}")
+            flash("Registration failed. Please try again.", "error")
+    return render_template("login-signup.html", login_form=LoginForm(), reg_form=reg_form)
 
-        if not (username and email and pw and confirm):
-            flash("All fields are required.", "error")
-            return redirect(url_for("register"))
-        if pw != confirm:
-            flash("Passwords do not match.", "error")
-            return redirect(url_for("register"))
-        if User.query.filter_by(email=email).first():
-            flash("Email already registered.", "error")
-            return redirect(url_for("register"))
 
-        user = User(username=username, email=email)
-        user.set_password(pw)
-        db.session.add(user)
-        db.session.commit()
+@application.route("/google_login/authorized")
+def google_login_authorized():
+    """Handle Google OAuth callback with full error handling"""
+    try:
+        # Check if OAuth succeeded
+        if not google.authorized:
+            flash("Access denied by Google or session expired.", "error")
+            return redirect(url_for("login"))
 
+        # Fetch and validate token
+        token = google.access_token
+        if not token:
+            flash("Invalid token from Google", "error")
+            return redirect(url_for("login"))
+
+        # Get user info (with error handling for API failures)
+        try:
+            resp = google.get("/oauth2/v2/userinfo")
+            if not resp.ok:
+                flash("Failed to fetch user data from Google", "error")
+                return redirect(url_for("login"))
+            user_info = resp.json()
+        except Exception as e:
+            application.logger.error(f"Google API error: {str(e)}")
+            flash("Google service temporarily unavailable", "error")
+            return redirect(url_for("login"))
+
+        # Extract and normalize user data
+        email = user_info["email"].lower()
+        username = user_info.get("name", email.split("@")[0])
+        profile_pic = user_info.get("picture")
+
+        # Database operations (with transaction safety)
+        try:
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                user = User(
+                    email=email,
+                    username=username,
+                    profile_pic=profile_pic,
+                    is_oauth_user=True  # Optional: flag for OAuth users
+                )
+                db.session.add(user)
+                db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            application.logger.error(f"Database error: {str(e)}")
+            flash("Account creation failed", "error")
+            return redirect(url_for("login"))
+
+        # Finalize login
         login_user(user)
         flash(f"Welcome, {username}!", "success")
         return redirect(url_for("uploadpage"))
-    return render_template("login-signup.html")
 
+    # Catch-all for unexpected errors
+    except Exception as e:
+        application.logger.critical(f"Unexpected auth error: {str(e)}")
+        flash("Login failed due to system error", "error")
+        return redirect(url_for("login"))
 
 @application.route("/logout")
 def logout():
@@ -86,36 +154,29 @@ def logout():
     flash("You've been logged out.", "info")
     return redirect(url_for("login"))
 
-
-# ─── PROFILE ───────────────────────────────────────────────────────────────────
-
-@application.route("/profile")
+@application.route("/profile", methods=["GET", "POST"]) # <-- GET/POST method action on button
 @login_required
-def profile():
-    # Placeholder; swap in your real user lookup
-    user_data = {
-        "profile_picture_url": url_for(
-            'static',
-            filename='images/default-avatar-icon.jpg'
-        ),
-        "name": current_user.username,
-        "email": current_user.email,
-        "bio": "",
-        "first_name": "",
-        "last_name": ""
-    }
+def profile(): # Profile user lookup now includes username
+    if request.method == "POST":
+        new_username = request.form.get("username").strip()
+        if new_username:
+            if new_username != current_user.username:
+                existing = User.query.filter_by(username=new_username).first()
+                if existing:
+                    flash("Username already taken.", "error")
+                else:
+                    current_user.username = new_username
+                    db.session.commit()
+                    flash("Username updated successfully!", "success")
+            else:
+                flash("That's already your current username.", "info")
+        else:
+            flash("Username cannot be empty.", "error")
+        return redirect(url_for("profile"))
 
-    try:
-        return render_template("profile.html", user=user_data)
-    except TemplateNotFound:
-        return "Profile template not found", 404
-    except Exception as e:
-        application.logger.error(f"Error rendering profile: {e}")
-        return "Error loading profile page", 500
-
+    return render_template("profile.html", user=current_user)
 
 # ─── UPLOAD PAGE ────────────────────────────────────────────────────────────────
-
 @application.route("/upload", methods=["GET", "POST"])
 @login_required
 def uploadpage():
@@ -192,12 +253,11 @@ def uploadpage():
     # GET → render form
     return render_template("uploadpage.html")
 
-
 # ─── SHARE PAGE ────────────────────────────────────────────────────────────────
-
 @application.route("/share")
 @login_required
 def share_page():
+    # List of people and their image filenames (from user.profile_pic) + TODO: should be real users added not dummy
     users = [
         ("James", "images/avatar1.png"),
         ("Justin", "images/avatar2.png"),
@@ -217,7 +277,6 @@ def handle_share():
 
 
 # ─── VISUALISATION & API ───────────────────────────────────────────────────────
-
 @application.route("/visualise")
 @application.route("/vis")
 @login_required

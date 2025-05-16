@@ -72,6 +72,36 @@
                 </div>
             </div>
 
+            <!--Username Edit Section-->
+            <form method="POST" action="{{ url_for('profile') }}" class="space-y-4">
+                <div>
+                  <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                  <input type="text" id="username" name="username" value="{{ user.username }}"
+                         class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-black focus:border-black">
+                </div>
+                <button type="submit"
+                        class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">
+                  Update Username
+                </button>
+              </form>
+              
+              <!-- Flash message section-->
+              {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                  <div class="mt-4">
+                    {% for category, message in messages %}
+                      <div class="p-3 rounded text-sm font-medium text-white
+                        {% if category == 'success' %} bg-green-500
+                        {% elif category == 'error' %} bg-red-500
+                        {% elif category == 'info' %} bg-blue-500
+                        {% else %} bg-gray-500 {% endif %}">
+                        {{ message }}
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              {% endwith %}
+
             <!-- Family Members Section -->
             <div id="family-section" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <div class="flex justify-between items-center mb-6">
