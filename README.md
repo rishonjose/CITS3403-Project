@@ -72,14 +72,11 @@ Then access the application by going to your preferred web browser, and type in 
 
 ## Testing
 
-# Install testing requirements
-pip install pytest
-
 # Run all tests
-pytest tests/ -v
+python3 -m unittest discover -s test -p "*.py" -v
 
 # Run specific test file
-pytest tests/test_authentication.py -v
+python3 -m unittest test.unitTests -v
 
 ## License
 Made under the MIT License
