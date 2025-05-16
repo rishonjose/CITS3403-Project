@@ -1,6 +1,7 @@
 import unittest
+import datetime
 from app import application, db
-from app.models import User
+from app.models import User, BillEntry
 from app.config import TestingConfig
 from sqlalchemy.exc import IntegrityError
 
@@ -44,6 +45,26 @@ class UserTests(unittest.TestCase):
         with self.assertRaises(IntegrityError):
             db.session.commit()
         db.session.rollback()
+
+    def test_user_bill_entry_relationship(self):
+        user = User(username='billuser', email='bill@test.com',profile_pic='default.png')
+        user.set_password('pass')
+        db.session.add(user)
+        db.session.commit()
+
+        entry = BillEntry(
+            user_id=user.id,
+            category='electricity',
+            units=100.5,
+            cost_per_unit=0.15,
+            start_date=datetime.date(2024, 1, 1),
+            end_date=datetime.date(2024, 1, 31)
+        )
+        db.session.add(entry)
+        db.session.commit()
+
+        self.assertEqual(user.entries.count(), 1)
+        self.assertEqual(user.entries.first().category, 'electricity')
 
     def tearDown(self):
         db.session.remove()
