@@ -16,6 +16,8 @@ from app import db
 from app.models import BillEntry, User, SharedReport, Household
 from app.forms import LoginForm, RegistrationForm, BillEntryForm
 from app.utils import parse_pdf_bill
+from flask_dance.contrib.google import make_google_blueprint
+
 
 # Google OAuth blueprint
 google_bp = make_google_blueprint(
@@ -24,15 +26,15 @@ google_bp = make_google_blueprint(
     redirect_to="google_login_authorized"
 )
 
+def register_blueprints(app):
+    app.register_blueprint(google_bp, url_prefix='/login/google')
+
 ALLOWED_EXT = {'pdf'}
 def allowed(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
 
 def home():
     return render_template("landingpage.html")
-
-def register_blueprints(app):
-    app.register_blueprint(google_bp, url_prefix='/google_login')
 
 def register_routes(app):
     csrf = CSRFProtect(app)
