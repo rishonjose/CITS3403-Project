@@ -17,7 +17,7 @@ from app.models import BillEntry, User, SharedReport, Household
 from app.forms import LoginForm, RegistrationForm, BillEntryForm
 from app.utils import parse_pdf_bill
 from flask_dance.contrib.google import make_google_blueprint
-
+from flask_dance.contrib.google import google
 
 # Google OAuth blueprint
 google_bp = make_google_blueprint(
