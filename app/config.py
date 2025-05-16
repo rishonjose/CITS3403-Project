@@ -8,3 +8,6 @@ load_dotenv(os.path.join(basedir, ".env"))
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'amber_pearl_latte_is_the_best'
     # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or default_database_uri
+
+class TestingConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
