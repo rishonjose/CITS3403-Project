@@ -2,6 +2,7 @@ import unittest
 from app import application, db
 from app.models import User
 from app.config import TestingConfig
+from sqlalchemy.exc import IntegrityError
 
 class UserTests(unittest.TestCase):
     def setUp(self):
@@ -23,6 +24,26 @@ class UserTests(unittest.TestCase):
         user.set_password('mypassword')
         self.assertTrue(user.check_password('mypassword'))
         self.assertFalse(user.check_password('wrongpassword'))
+
+    def test_unique_username_and_email(self):
+        user1 = User(username='unique', email='unique@test.com',profile_pic='default.png')
+        user1.set_password('pass')
+        db.session.add(user1)
+        db.session.commit()
+
+        user2 = User(username='unique', email='unique2@test.com',profile_pic='default.png')
+        user2.set_password('pass')
+        db.session.add(user2)
+        with self.assertRaises(IntegrityError):
+            db.session.commit()
+        db.session.rollback()
+
+        user3 = User(username='unique3', email='unique@test.com',profile_pic='default.png')
+        user3.set_password('pass')
+        db.session.add(user3)
+        with self.assertRaises(IntegrityError):
+            db.session.commit()
+        db.session.rollback()
 
     def tearDown(self):
         db.session.remove()
