@@ -82,3 +82,21 @@ class User(db.Model, UserMixin):
     
     def get_display_name(self):
         return self.username or self.email.split('@')[0]
+    
+class Household(db.Model):
+    __tablename__ = 'households'
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    created_by: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
+
+class SharedReport(db.Model):
+    __tablename__ = 'shared_reports'
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bill_id: Mapped[int] = mapped_column(ForeignKey('bill_entries.id'), nullable=False)
+    shared_with: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    shared_by: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    shared_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
+    can_edit: Mapped[bool] = mapped_column(db.Boolean, default=False)
