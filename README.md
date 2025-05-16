@@ -1,7 +1,6 @@
 # CITS3403-Project
 # Meter - Household Utility Tracking System
 
-![Meter Dashboard Preview](static/images/demo-screenshot.png)
 
 ## Table of Contents
 - [Application Purpose](#application-purpose)
