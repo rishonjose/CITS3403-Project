@@ -54,6 +54,7 @@ def register():
             user = User(
                 username=reg_form.username.data,
                 email=reg_form.email.data.lower(),
+                profile_pic="images/default_profile.png",  # Default profile picture
             )
             user.set_password(reg_form.password.data)
             db.session.add(user)
