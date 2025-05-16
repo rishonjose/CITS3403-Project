@@ -180,16 +180,17 @@ def profile(): # Profile user lookup now includes username
 @application.route("/upload", methods=["GET", "POST"])
 @login_required
 def uploadpage():
-    if request.method == "POST":
-        # —— PDF Upload & Parse ——
-        pdf = request.files.get("pdf_file")
+    form = BillEntryForm()
+    
+    # 1) PDF branch takes precedence if they uploaded a PDF
+    if form.validate_on_submit() is False and 'pdf_file' in request.files:
+        pdf = request.files['pdf_file']
         if pdf and allowed(pdf.filename):
             filename = secure_filename(pdf.filename)
             upload_dir = application.config.get('UPLOAD_FOLDER', 'uploads')
             os.makedirs(upload_dir, exist_ok=True)
             save_path = os.path.join(upload_dir, filename)
             pdf.save(save_path)
-
             try:
                 data = parse_pdf_bill(save_path)
                 units      = float(data["units"])
@@ -217,41 +218,24 @@ def uploadpage():
                 )
                 # fall through to manual-entry
 
-        # —— Manual Entry ——
-        category   = request.form.get("category")
-        units_str  = request.form.get("field_one", "").strip()
-        cost_str   = request.form.get("field_two", "").strip()
-        start_str  = request.form.get("start_date")
-        end_str    = request.form.get("end_date")
 
-        try:
-            units      = float(units_str)
-            cost       = float(cost_str)
-            start_date = date.fromisoformat(start_str)
-            end_date   = date.fromisoformat(end_str)
-        except (ValueError, TypeError):
-            flash(
-                "Units, cost, and dates must be valid.",
-                "error"
-            )
-            return redirect(url_for("uploadpage"))
-
+    # 2) Manual‐entry branch via WTForms
+    if form.validate_on_submit():
         entry = BillEntry(
             user_id       = current_user.id,
-            category      = category,
-            units         = units,
-            cost_per_unit = cost,
-            start_date    = start_date,
-            end_date      = end_date
+            category      = form.category.data,
+            units         = form.units.data,
+            cost_per_unit = form.cost_per_unit.data,
+            start_date    = form.start_date.data,
+            end_date      = form.end_date.data
         )
         db.session.add(entry)
         db.session.commit()
-
-        flash("Bill entry saved successfully!", "success")
+        flash("Bill entry saved successfully!","success")
         return redirect(url_for("uploadpage"))
 
-    # GET → render form
-    return render_template("uploadpage.html")
+    # 3) on GET or on any validation errors, render the page & form
+    return render_template("uploadpage.html", form=form)
 
 # ─── SHARE PAGE ────────────────────────────────────────────────────────────────
 @application.route("/share")
