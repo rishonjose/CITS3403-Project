@@ -38,7 +38,6 @@
       padding: 2rem 1rem;
       text-align: center;
     }
-    
     header.hero::before {
       content: '';
       position: absolute;
@@ -52,6 +51,10 @@
       align-items: center;
       max-width: 1024px;
       margin: 0 auto 2rem;
+    }
+    header.hero nav .nav-actions {
+      display: flex;
+      gap: 0.5rem;    /* space between Dashboard & My Profile */
     }
     header.hero nav .logo {
       font-size: 1.25rem;
@@ -190,6 +193,36 @@
       cursor: not-allowed;
     }
 
+    /* Flash messages */
+    .flash-container {
+      max-width: 800px;
+      margin: 1rem auto;
+      display: grid;
+      gap: 0.5rem;
+    }
+    .flash {
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      color: var(--brand-white);
+      position: relative;
+      padding-right: 2rem;
+    }
+    .flash-success { background: #4CAF50; }
+    .flash-error   { background: #f44336; }
+    .flash-info    { background: #2196F3; }
+    .flash-close {
+      position: absolute;
+      top: 50%;
+      right: 0.5rem;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--brand-white);
+      font-size: 1.2rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
     /* ========== FOOTER ========== */
     footer {
       margin-top: 3rem;
@@ -249,23 +282,59 @@
 
   <!-- HEADER / HERO -->
   <header class="hero">
-    <nav>
-      <div class="logo">Meter</div>
-      {% if current_user.is_authenticated %}
-        <a href="{{ url_for('profile') }}" class="account-btn">My Profile</a>
-      {% else %}
-        <a href="{{ url_for('login') }}" class="account-btn">Login</a>
-      {% endif %}
-    </nav>
+<nav>
+  <div class="logo">Meter</div>
+  {% if current_user.is_authenticated %}
+    <div class="nav-actions">
+      <!-- Dashboard button -->
+      <a href="{{ url_for('visualise_data') }}" 
+         class="account-btn">
+        Dashboard
+      </a>
+      <!-- Profile button -->
+      <a href="{{ url_for('profile') }}" 
+         class="account-btn">
+        My Profile
+      </a>
+    </div>
+  {% else %}
+    <a href="{{ url_for('login') }}" class="account-btn">Login</a>
+  {% endif %}
+</nav>
     <div class="hero-content">
       <h1>Upload Your Data Here</h1>
       <p>Redefining utility tracking — smarter, simpler, cleaner.</p>
-      <label class="file-btn">
-        Choose PDF
-        <input type="file" accept="application/pdf" />
-      </label>
+      <form action="{{ url_for('uploadpage') }}" 
+            method="POST" 
+            enctype="multipart/form-data"
+            class="file-btn-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="file-btn">
+          Choose PDF
+          <input 
+            type="file" 
+            name="pdf_file" 
+            accept="application/pdf" 
+            onchange="this.form.submit()" 
+          />
+        </label>
+      </form>
     </div>
   </header>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, msg in messages %}
+          <div class="flash flash-{{ category }}">
+            <span class="flash-text">{{ msg }}</span>
+            <button class="flash-close" aria-label="Dismiss">&times;</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <!-- MANUAL ENTRY -->
   <main>
@@ -446,26 +515,38 @@
       [fieldOne, fieldTwo, startDate, endDate].forEach(el =>
         el.addEventListener('input', updateSubmitState)
       );
-  
+
+      // Prevent submitting invalid form
       submitBtn.addEventListener('click', e => {
         if (submitBtn.classList.contains('disabled')) {
           e.preventDefault();
         }
       });
-  
+
+      // Update file button text while preserving functionality
       document.querySelector('.file-btn input[type="file"]')?.addEventListener('change', (e) => {
         if (e.target.files.length) {
           const fileName = e.target.files[0].name;
-          document.querySelector('.file-btn').textContent = 
-            fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName;
+          const fileBtn = document.querySelector('.file-btn');
+          // Preserve existing input element while updating text
+          fileBtn.innerHTML = `
+            ${fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName}
+            ${fileBtn.innerHTML}  <!-- Keep original input element -->
+          `;
         }
       });
   
       updateSubmitState();
+
+      // flash dismiss handlers
+      document.querySelectorAll('.flash').forEach(flash => {
+        const closeBtn = flash.querySelector('.flash-close');
+        closeBtn.addEventListener('click', () => flash.remove());
+        setTimeout(() => { if (flash.parentNode) flash.remove(); }, 5000);
+      });
     });
   </script>
   <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
-  
   
 </body>
 </html>

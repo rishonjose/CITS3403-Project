@@ -7,6 +7,8 @@ application-venv/
 # Byte-compiled / optimized / DLL files
 __pycache__
 
+/app/uploads/
+
 # database
 *.db
 *.sqlite3
