@@ -1,151 +1,178 @@
 import os
-from werkzeug.utils import secure_filename
-from app.utils import parse_pdf_bill
-from flask import (
-    Flask, render_template, request, flash,
-    redirect, url_for, jsonify, abort
-)
-from flask_dance.contrib.google import make_google_blueprint, google
+import random
+import string
 from collections import defaultdict
-from jinja2 import TemplateNotFound
-from flask_wtf.csrf import CSRFProtect
 from datetime import date, datetime
 from calendar import monthrange
-from flask_login import (
-    login_user, logout_user,
-    login_required, current_user
-)
-from app import application, db
-from app.models import BillEntry, User
-from app.forms import LoginForm, RegistrationForm, BillEntryForm
 
-google_bp = make_google_blueprint(client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"), 
-                                  client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"), 
-                                  redirect_to="google_login_authorized")
+from flask import (
+    render_template, request, flash,
+    redirect, url_for, session, jsonify, abort
+)
+from jinja2 import TemplateNotFound
+from flask_wtf.csrf import CSRFProtect
+from werkzeug.utils import secure_filename
+from flask_dance.contrib.google import make_google_blueprint, google
+from flask_login import login_user, logout_user, login_required, current_user
+
+from app import application, db
+from app.models import BillEntry, User, SharedReport, Household
+from app.forms import LoginForm, RegistrationForm, BillEntryForm
+from app.utils import parse_pdf_bill
+
+# ——— OAuth & Security Setup ———
+google_bp = make_google_blueprint(
+    client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
+    redirect_to="google_login_authorized"
+)
 application.register_blueprint(google_bp, url_prefix='/google_login')
 
-# Initialize CSRF protection
 csrf = CSRFProtect(application)
 
+# Allowed file extensions for uploads
 ALLOWED_EXT = {'pdf'}
 def allowed(filename):
-    return (
-        '.' in filename
-        and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
-    )
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
 
-
-@application.route("/")
-@application.route("/home")
+# ——— ROUTES: Public ———
 def home():
     return render_template("landingpage.html")
+application.add_url_rule("/", 'home', home)
+application.add_url_rule("/home", 'home_alt', home)
 
-# ─── AUTH ──────────────────────────────────────────────────────────────────────
-# Login/signup page
+# ——— AUTHENTICATION ———
 @application.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-      return redirect(url_for('uploadpage'))
-    
+        return redirect(url_for("uploadpage"))
+
     login_form = LoginForm()
+    reg_form = RegistrationForm()
+
     if login_form.validate_on_submit():
-        user = User.query.filter_by(email=login_form.email.data.lower()).first()
-        if user and user.check_password(login_form.password.data):
+        email = login_form.email.data.lower().strip()
+        pw = login_form.password.data
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.check_password(pw):
             login_user(user)
-            next_page = request.args.get('next')
             flash("Logged in successfully!", "success")
-            return redirect(next_page or url_for('uploadpage'))
+            next_page = request.args.get("next")
+            return redirect(next_page or url_for("uploadpage"))
         flash("Invalid email or password", "error")
-    
-    return render_template("login-signup.html", 
-                         login_form=login_form, 
-                         reg_form=RegistrationForm())
+
+    return render_template(
+        "login-signup.html",
+        login_form=login_form,
+        reg_form=reg_form
+    )
 
 @application.route("/register", methods=["GET", "POST"])
 def register():
-    reg_form = RegistrationForm()
     if current_user.is_authenticated:
-        return redirect(url_for('uploadpage'))
-    
+        return redirect(url_for("uploadpage"))
+
+    reg_form = RegistrationForm()
     if reg_form.validate_on_submit():
+        username = reg_form.username.data.strip()
+        email = reg_form.email.data.lower().strip()
+        pw = reg_form.password.data
+        confirm = reg_form.confirm_password.data
+        role = reg_form.role.data or "user"
+        code = (reg_form.household_code.data or "").strip().upper()
+
+        if not (username and email and pw and confirm):
+            flash("All fields are required.", "error")
+            return redirect(url_for("register"))
+        if pw != confirm:
+            flash("Passwords do not match.", "error")
+            return redirect(url_for("register"))
+        if User.query.filter_by(email=email).first():
+            flash("Email already registered.", "error")
+            return redirect(url_for("register"))
+
+        household_id = None
+        if role == "admin":
+            # Generate unique household code
+            while True:
+                code = "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
+                if not Household.query.filter_by(code=code).first():
+                    break
+            new_hh = Household(code=code)
+            db.session.add(new_hh)
+            db.session.flush()
+            household_id = new_hh.id
+        else:
+            household = Household.query.filter_by(code=code).first()
+            if not household:
+                flash("Invalid household code.", "error")
+                return redirect(url_for("register"))
+            household_id = household.id
+
         try:
             user = User(
-                username=reg_form.username.data,
-                email=reg_form.email.data.lower(),
-                profile_pic="images/default_profile.png",  # Default profile picture
+                username=username,
+                email=email,
+                role=role,
+                household_code=code,
+                household_id=household_id
             )
-            user.set_password(reg_form.password.data)
+            user.set_password(pw)
             db.session.add(user)
             db.session.commit()
+
             login_user(user)
-            flash(f"Account created for {reg_form.username.data}!", "success")
-            return redirect(url_for('uploadpage'))
+            session["show_household_code"] = True
+            session["household_code"] = code
+            flash(f"Account created for {username}!", "success")
+            return redirect(url_for("uploadpage"))
         except Exception as e:
             db.session.rollback()
-            application.logger.error(f"Registration failed: {str(e)}")
+            application.logger.error(f"Registration failed: {e}")
             flash("Registration failed. Please try again.", "error")
-    return render_template("login-signup.html", login_form=LoginForm(), reg_form=reg_form)
+            return redirect(url_for("register"))
 
+    return render_template(
+        "login-signup.html",
+        login_form=LoginForm(),
+        reg_form=reg_form
+    )
 
 @application.route("/google_login/authorized")
 def google_login_authorized():
-    """Handle Google OAuth callback with full error handling"""
     try:
-        # Check if OAuth succeeded
         if not google.authorized:
             flash("Access denied by Google or session expired.", "error")
             return redirect(url_for("login"))
 
-        # Fetch and validate token
-        token = google.access_token
-        if not token:
-            flash("Invalid token from Google", "error")
+        resp = google.get("/oauth2/v2/userinfo")
+        if not resp.ok:
+            flash("Failed to fetch user data from Google", "error")
             return redirect(url_for("login"))
+        info = resp.json()
 
-        # Get user info (with error handling for API failures)
-        try:
-            resp = google.get("/oauth2/v2/userinfo")
-            if not resp.ok:
-                flash("Failed to fetch user data from Google", "error")
-                return redirect(url_for("login"))
-            user_info = resp.json()
-        except Exception as e:
-            application.logger.error(f"Google API error: {str(e)}")
-            flash("Google service temporarily unavailable", "error")
-            return redirect(url_for("login"))
+        email = info["email"].lower()
+        username = info.get("name", email.split("@")[0])
+        profile_pic = info.get("picture")
 
-        # Extract and normalize user data
-        email = user_info["email"].lower()
-        username = user_info.get("name", email.split("@")[0])
-        profile_pic = user_info.get("picture")
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            user = User(
+                username=username,
+                email=email,
+                profile_pic=profile_pic,
+                is_oauth_user=True
+            )
+            db.session.add(user)
+            db.session.commit()
 
-        # Database operations (with transaction safety)
-        try:
-            user = User.query.filter_by(email=email).first()
-            if not user:
-                user = User(
-                    email=email,
-                    username=username,
-                    profile_pic=profile_pic,
-                    is_oauth_user=True  # Optional: flag for OAuth users
-                )
-                db.session.add(user)
-                db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            application.logger.error(f"Database error: {str(e)}")
-            flash("Account creation failed", "error")
-            return redirect(url_for("login"))
-
-        # Finalize login
         login_user(user)
-        flash(f"Welcome, {username}!", "success")
+        flash("Logged in with Google!", "success")
         return redirect(url_for("uploadpage"))
-
-    # Catch-all for unexpected errors
     except Exception as e:
-        application.logger.critical(f"Unexpected auth error: {str(e)}")
-        flash("Login failed due to system error", "error")
+        application.logger.error(f"Google login error: {e}")
+        flash("Google login failed.", "error")
         return redirect(url_for("login"))
 
 @application.route("/logout")
@@ -154,15 +181,21 @@ def logout():
     flash("You've been logged out.", "info")
     return redirect(url_for("login"))
 
-@application.route("/profile", methods=["GET", "POST"]) # <-- GET/POST method action on button
+@application.route("/clear-household-code", methods=["POST"])
+def clear_household_code():
+    session.pop("show_household_code", None)
+    session.pop("household_code", None)
+    return "", 204
+
+# ——— PROFILE ———
+@application.route("/profile", methods=["GET", "POST"])
 @login_required
-def profile(): # Profile user lookup now includes username
+def profile():
     if request.method == "POST":
-        new_username = request.form.get("username").strip()
+        new_username = request.form.get("username", "").strip()
         if new_username:
             if new_username != current_user.username:
-                existing = User.query.filter_by(username=new_username).first()
-                if existing:
+                if User.query.filter_by(username=new_username).first():
                     flash("Username already taken.", "error")
                 else:
                     current_user.username = new_username
@@ -174,16 +207,34 @@ def profile(): # Profile user lookup now includes username
             flash("Username cannot be empty.", "error")
         return redirect(url_for("profile"))
 
-    return render_template("profile.html", user=current_user)
+    if current_user.role == "admin":
+        session["household_code"] = current_user.household_code
 
-# ─── UPLOAD PAGE ────────────────────────────────────────────────────────────────
+    user_data = {
+        "profile_picture_url": url_for('static', filename='images/default-avatar-icon.jpg'),
+        "name": current_user.username,
+        "email": current_user.email,
+        "bio": getattr(current_user, "bio", ""),
+        "first_name": getattr(current_user, "first_name", ""),
+        "last_name": getattr(current_user, "last_name", ""),
+        "role": current_user.role
+    }
+    try:
+        return render_template("profile.html", user=user_data)
+    except TemplateNotFound:
+        return "Profile template not found", 404
+    except Exception as e:
+        application.logger.error(f"Error rendering profile: {e}")
+        return "Error loading profile page", 500
+
+# ——— UPLOAD & BILL ENTRY ———
 @application.route("/upload", methods=["GET", "POST"])
 @login_required
 def uploadpage():
     form = BillEntryForm()
-    
-    # 1) PDF branch takes precedence if they uploaded a PDF
-    if form.validate_on_submit() is False and 'pdf_file' in request.files:
+
+    # PDF upload
+    if 'pdf_file' in request.files and request.files['pdf_file'].filename:
         pdf = request.files['pdf_file']
         if pdf and allowed(pdf.filename):
             filename = secure_filename(pdf.filename)
@@ -193,74 +244,69 @@ def uploadpage():
             pdf.save(save_path)
             try:
                 data = parse_pdf_bill(save_path)
-                units      = float(data["units"])
-                cost       = float(data["cost"])
-                start_date = date.fromisoformat(data["start_date"])
-                end_date   = date.fromisoformat(data["end_date"])
-
                 entry = BillEntry(
-                    user_id       = current_user.id,
-                    category      = data.get("category", "Other"),
-                    units         = units,
-                    cost_per_unit = cost,
-                    start_date    = start_date,
-                    end_date      = end_date
+                    user_id=current_user.id,
+                    category=data.get('category', 'Other'),
+                    units=float(data['units']),
+                    cost_per_unit=float(data['cost']),
+                    start_date=date.fromisoformat(data['start_date']),
+                    end_date=date.fromisoformat(data['end_date'])
                 )
                 db.session.add(entry)
                 db.session.commit()
                 flash("PDF parsed and entry saved!", "success")
                 return redirect(url_for("uploadpage"))
             except Exception:
-                flash(
-                    "Couldn't parse the PDF completely. "
-                    "Please enter manually.",
-                    "error"
-                )
-                # fall through to manual-entry
+                flash("Couldn't parse the PDF completely. Please enter manually.", "error")
 
-
-    # 2) Manual‐entry branch via WTForms
+    # Manual entry
     if form.validate_on_submit():
         entry = BillEntry(
-            user_id       = current_user.id,
-            category      = form.category.data,
-            units         = form.units.data,
-            cost_per_unit = form.cost_per_unit.data,
-            start_date    = form.start_date.data,
-            end_date      = form.end_date.data
+            user_id=current_user.id,
+            category=form.category.data,
+            units=form.units.data,
+            cost_per_unit=form.cost_per_unit.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data
         )
         db.session.add(entry)
         db.session.commit()
-        flash("Bill entry saved successfully!","success")
+        flash("Bill entry saved successfully!", "success")
         return redirect(url_for("uploadpage"))
 
-    # 3) on GET or on any validation errors, render the page & form
     return render_template("uploadpage.html", form=form)
 
-# ─── SHARE PAGE ────────────────────────────────────────────────────────────────
-@application.route("/share")
+# ——— SHARING ———
+@application.route("/share", methods=["GET", "POST"])
 @login_required
 def share_page():
-    # List of people and their image filenames (from user.profile_pic) + TODO: should be real users added not dummy
-    users = [
-        ("James", "images/avatar1.png"),
-        ("Justin", "images/avatar2.png"),
-        ("Sacha", "images/avatar3.png"),
-        ("Rishon", "images/avatar4.png")
-    ]
-    return render_template("share.html", users=users)
+    users = User.query.filter(User.id != current_user.id).all()
 
+    if request.method == "POST":
+        selected_ids = request.form.getlist("share_to")
+        if 'household' in selected_ids:
+            selected_ids = [str(user.id) for user in users]
+        for uid in selected_ids:
+            shared = SharedReport(
+                shared_by=current_user.id,
+                shared_with=int(uid),
+                report_url="/visualise"
+            )
+            db.session.add(shared)
+        db.session.commit()
+        flash("Report shared successfully!", "success")
+        return redirect(url_for("share_page"))
+
+    return render_template("share.html", users=users)
 
 @application.route("/share-data", methods=["POST"])
 @login_required
 def handle_share():
     selected = request.form.getlist("share_to")
-    # process sharing…
     flash(f"Shared with: {', '.join(selected)}", "success")
     return redirect(url_for("share_page"))
 
-
-# ─── VISUALISATION & API ───────────────────────────────────────────────────────
+# ——— VISUALISATION & API ———
 @application.route("/visualise")
 @application.route("/vis")
 @login_required
@@ -274,34 +320,21 @@ def visualise_data():
     )
     return render_template("visualiseDataPage.html", recent_bills=recent)
 
-
 @application.route('/api/analytics')
 @login_required
 def analytics_api():
     raw = defaultdict(lambda: defaultdict(float))
-    entries = BillEntry.query.filter_by(
-        user_id=current_user.id
-    ).all()
-
+    entries = BillEntry.query.filter_by(user_id=current_user.id).all()
     for e in entries:
         mon = e.start_date.strftime('%b %Y')
         raw[mon][e.category] += e.units * e.cost_per_unit
 
-    # sort months chronologically
-    months = sorted(
-        raw.keys(),
-        key=lambda m: datetime.strptime(m, '%b %Y')
-    )
-
-    utils     = ['Electricity','Water','Gas','WiFi','Other']
+    months = sorted(raw.keys(), key=lambda m: datetime.strptime(m, '%b %Y'))
+    utils = ['Electricity','Water','Gas','WiFi','Other']
     totalBill = [ sum(raw[m].values()) for m in months ]
-    util_data = {
-        u: [ raw[m].get(u, 0) for m in months ]
-        for u in utils
-    }
+    util_data = { u: [ raw[m].get(u, 0) for m in months ] for u in utils }
     colours = ['orange','blue','green','violet','grey']
 
-    # figure out last two months' totals
     if len(months) >= 2:
         this_total = totalBill[-1]
         prev_total = totalBill[-2]
@@ -309,24 +342,20 @@ def analytics_api():
     else:
         this_total = prev_total = pct_change = None
 
-    # days in that last month
-    last_mon_str = months[-1]                  # e.g. "May 2025"
-    dt = datetime.strptime(last_mon_str, '%b %Y')
-    days = monthrange(dt.year, dt.month)[1]   # 31, 30, etc.
+    last_mon_str = months[-1] if months else None
+    days = monthrange(datetime.strptime(last_mon_str, '%b %Y').year, datetime.strptime(last_mon_str, '%b %Y').month)[1] if last_mon_str else None
+    avg_per_day = round(this_total / days, 2) if this_total and days else None
 
-    avg_per_day = round(this_total / days, 2) if this_total else None
-    
     return jsonify({
         'month_labels': months,
-        'util_labels' : utils,
+        'util_labels': utils,
         'util_colours': colours,
-        'totalBill'   : totalBill,
-        'util_data'   : util_data,
+        'totalBill': totalBill,
+        'util_data': util_data,
         'this_month_total': this_total,
-        'pct_change'  : pct_change,
-        'avg_per_day' : avg_per_day,
+        'pct_change': pct_change,
+        'avg_per_day': avg_per_day,
     })
-
 
 @application.route('/entry/<int:entry_id>/delete', methods=['POST'])
 @login_required
@@ -335,12 +364,10 @@ def delete_entry(entry_id):
     if entry.user_id != current_user.id:
         flash("That's not your bill to delete!", "error")
         return redirect(request.referrer or url_for('visualise_data'))
-
     db.session.delete(entry)
     db.session.commit()
     flash("Bill deleted.", "success")
     return redirect(request.referrer or url_for('visualise_data'))
-
 
 @application.route('/entry/<int:entry_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -351,24 +378,20 @@ def edit_entry(entry_id):
         return redirect(request.referrer or url_for('visualise_data'))
 
     if request.method == 'POST':
-        # pull & validate exactly like uploadpage()
         try:
-            entry.category      = request.form['category']
-            entry.units         = float(request.form['field_one'])
+            entry.category = request.form['category']
+            entry.units = float(request.form['field_one'])
             entry.cost_per_unit = float(request.form['field_two'])
-            entry.start_date    = date.fromisoformat(request.form['start_date'])
-            entry.end_date      = date.fromisoformat(request.form['end_date'])
+            entry.start_date = date.fromisoformat(request.form['start_date'])
+            entry.end_date = date.fromisoformat(request.form['end_date'])
         except (ValueError, TypeError):
             flash("Invalid data; please try again.", "error")
             return redirect(request.referrer or url_for('visualise_data'))
-
         db.session.commit()
         flash("Bill updated!", "success")
         return redirect(request.referrer or url_for('visualise_data'))
 
-    # GET → pre-populate a simple edit form
     return render_template('edit_bill.html', bill=entry)
-
 
 @application.route('/history')
 @login_required
@@ -379,14 +402,9 @@ def bill_history():
                   .order_by(BillEntry.created_at.desc())
                   .paginate(page=page, per_page=20))
     return render_template(
-      'history.html',
-      bills=pagination.items,
-      prev_page=pagination.prev_num,
-      next_page=pagination.next_num
+        'history.html',
+        bills=pagination.items,
+        prev_page=pagination.prev_num,
+        next_page=pagination.next_num
     )
 
-
-@application.route("/u")
-@login_required
-def upload_data():
-    return render_template("uploadpage.html")
