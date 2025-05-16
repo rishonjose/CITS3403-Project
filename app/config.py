@@ -10,4 +10,6 @@ class Config:
     # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or default_database_uri
 
 class TestingConfig(Config):
+    TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False
