@@ -18,7 +18,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import application, db
 from app.models import BillEntry, User, SharedReport, Household
 from app.forms import LoginForm, RegistrationForm, BillEntryForm
-from app.utils import parse_pdf_bill
+from app.utils import parse_pdf_bill, generate_unique_code
 
 # ——— OAuth & Security Setup ———
 google_bp = make_google_blueprint(
@@ -34,6 +34,8 @@ csrf = CSRFProtect(application)
 ALLOWED_EXT = {'pdf'}
 def allowed(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
+
+
 
 # ——— ROUTES: Public ———
 def home():
@@ -70,73 +72,67 @@ def login():
 
 @application.route("/register", methods=["GET", "POST"])
 def register():
+    # If they're already logged in, send them to the upload page
     if current_user.is_authenticated:
         return redirect(url_for("uploadpage"))
 
-    reg_form = RegistrationForm()
+    reg_form   = RegistrationForm()
+    login_form = LoginForm()  # in case you render both on one template
+
     if reg_form.validate_on_submit():
+        # 1) Pull form data
         username = reg_form.username.data.strip()
-        email = reg_form.email.data.lower().strip()
-        pw = reg_form.password.data
-        confirm = reg_form.confirm_password.data
-        role = reg_form.role.data or "user"
-        code = (reg_form.household_code.data or "").strip().upper()
+        email    = reg_form.email.data.lower().strip()
+        password = reg_form.password.data
+        role     = reg_form.role.data                   # must be a SelectField on your form
+        code     = (reg_form.household_code.data or "").strip().upper()
 
-        if not (username and email and pw and confirm):
-            flash("All fields are required.", "error")
-            return redirect(url_for("register"))
-        if pw != confirm:
-            flash("Passwords do not match.", "error")
-            return redirect(url_for("register"))
-        if User.query.filter_by(email=email).first():
-            flash("Email already registered.", "error")
-            return redirect(url_for("register"))
+        # 2) Create the user object and flush so it gets an ID
+        new_user = User(
+            username = username,
+            email    = email,
+            role     = role,
+            household_code = code  # temporarily store; we'll override for admin
+        )
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.flush()  # now new_user.id is available
 
-        household_id = None
+        # 3) Create or look up the household
         if role == "admin":
-            # Generate unique household code
-            while True:
-                code = "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
-                if not Household.query.filter_by(code=code).first():
-                    break
-            new_hh = Household(code=code)
+            # generate a unique 8-char alphanumeric code
+            code = generate_unique_code()
+            new_hh = Household(
+                code       = code,
+                name       = f"{username}'s household",
+                created_by = new_user.id
+            )
             db.session.add(new_hh)
-            db.session.flush()
-            household_id = new_hh.id
+            db.session.flush()  # now new_hh.id is available
+            new_user.household_id = new_hh.id
         else:
-            household = Household.query.filter_by(code=code).first()
-            if not household:
+            # regular member must supply a valid code
+            hh = Household.query.filter_by(code=code).first()
+            if not hh:
                 flash("Invalid household code.", "error")
                 return redirect(url_for("register"))
-            household_id = household.id
+            new_user.household_id = hh.id
 
-        try:
-            user = User(
-                username=username,
-                email=email,
-                role=role,
-                household_code=code,
-                household_id=household_id
-            )
-            user.set_password(pw)
-            db.session.add(user)
-            db.session.commit()
+        # 4) Commit everything
+        db.session.commit()
 
-            login_user(user)
-            session["show_household_code"] = True
-            session["household_code"] = code
-            flash(f"Account created for {username}!", "success")
-            return redirect(url_for("uploadpage"))
-        except Exception as e:
-            db.session.rollback()
-            application.logger.error(f"Registration failed: {e}")
-            flash("Registration failed. Please try again.", "error")
-            return redirect(url_for("register"))
+        # 5) Log them in and redirect
+        login_user(new_user)
+        session["show_household_code"] = (role == "admin")
+        session["household_code"]      = code
+        flash(f"Welcome, {username}! Your account has been created.", "success")
+        return redirect(url_for("uploadpage"))
 
+    # GET or validation failure → re-render form
     return render_template(
         "login-signup.html",
-        login_form=LoginForm(),
-        reg_form=reg_form
+        login_form = login_form,
+        reg_form   = reg_form
     )
 
 @application.route("/google_login/authorized")
