@@ -127,3 +127,123 @@ hr.solid{
     margin-bottom: 32px;
     border-top: 2px solid #dadada;
 }
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none;
+}
+
+.flex {
+    display: flex;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+/* Image Handling */
+.img-placeholder {
+    height: 164px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .feature-box {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .flex {
+        flex-direction: column;
+    }
+    
+    header .nav-buttons {
+        gap: 8px;
+    }
+    
+    .logo {
+        font-size: 24px;
+    }
+}
+
+/* Profile Specific */
+.family-member {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.delete-zone {
+    border: 2px dashed #e5e7eb;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+/* Chart Containers */
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Upload Page Specific */
+.form-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.file-btn {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.file-btn input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+    height: 100%;
+    width: 100%;
+}
+
+/* Visualizations Page */
+.card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1rem;
+}
+
+.Tables-collapse {
+    width: 100%;
+    border-collapse: collapse;
+}
