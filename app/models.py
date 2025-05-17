@@ -1,5 +1,6 @@
+import uuid
 from typing import Optional
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, Float, Date, DateTime, ForeignKey
 from . import db
 from flask import url_for
@@ -11,21 +12,17 @@ class BillEntry(db.Model):
     __tablename__ = 'bill_entries'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey('users.id', ondelete='CASCADE'),
-        nullable=False
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     category: Mapped[str] = mapped_column(String(20), nullable=False)
     units: Mapped[float] = mapped_column(Float, nullable=False)
     cost_per_unit: Mapped[float] = mapped_column(Float, nullable=False)
     start_date: Mapped[Date] = mapped_column(Date, nullable=False)
     end_date: Mapped[Date] = mapped_column(Date, nullable=False)
-    created_at: Mapped[DateTime] = mapped_column(
-        DateTime,
-        server_default=db.func.now(),
-        nullable=False
-    )
+    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now(), nullable=False)
 
+    # relationships
+    shared_reports = db.relationship('SharedReport', back_populates='bill', cascade='all, delete-orphan')
+    
     def __repr__(self):
         return (
             f"<BillEntry id={self.id!r} "
@@ -50,6 +47,8 @@ class User(db.Model, UserMixin):
     
     # relationships
     entries = db.relationship('BillEntry', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    sent_reports = db.relationship('SharedReport', foreign_keys='SharedReport.shared_by', back_populates='shared_by_user', cascade='all, delete-orphan')
+    received_reports = db.relationship('SharedReport', foreign_keys='SharedReport.shared_with', back_populates='shared_with_user', cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -101,3 +100,9 @@ class SharedReport(db.Model):
     shared_by: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
     shared_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
     can_edit: Mapped[bool] = mapped_column(db.Boolean, default=False)
+    share_group_id: Mapped[str] = mapped_column(String(36), nullable=False, default=lambda: uuid.uuid4().hex)
+    
+    # **relationships for easy access**
+    bill = db.relationship('BillEntry', back_populates='shared_reports')
+    shared_by_user = db.relationship('User', foreign_keys=[shared_by], back_populates='sent_reports')
+    shared_with_user = db.relationship('User', foreign_keys=[shared_with], back_populates='received_reports')

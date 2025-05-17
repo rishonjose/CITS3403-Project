@@ -1,8 +1,8 @@
-import os
+import os, uuid
 from datetime import date, datetime
 
 from flask import (
-    render_template, request, flash,
+    render_template, request, flash, abort,
     redirect, url_for, session, jsonify
 )
 from flask_wtf.csrf import CSRFProtect
@@ -19,6 +19,7 @@ from flask_dance.contrib.google import google
 from collections import defaultdict
 from calendar import monthrange
 from jinja2 import TemplateNotFound
+from sqlalchemy import func, desc
 
 # Google OAuth blueprint
 google_bp = make_google_blueprint(
@@ -287,34 +288,97 @@ def register_routes(app):
         return render_template("uploadpage.html", form=form)
 
     # ——— SHARING ———
-    @app.route("/share", methods=["GET", "POST"])
+    @app.route("/share-entries", methods=["GET", "POST"])
     @login_required
-    def share_page():
-        users = User.query.filter(User.id != current_user.id).all()
+    def share_entries():
+        # Fetch every bill in descending date order
+        bills = (
+            BillEntry.query
+            .join(User, BillEntry.user_id == User.id)
+            .filter(User.household_id == current_user.household_id)
+            .order_by(BillEntry.start_date.desc())
+            .all()
+        )
+
+        # Fetch other household members
+        members = (
+            User.query
+            .filter_by(household_id=current_user.household_id)
+            .filter(User.id != current_user.id)
+            .all()
+        )
 
         if request.method == "POST":
-            selected_ids = request.form.getlist("share_to")
-            if 'household' in selected_ids:
-                selected_ids = [str(user.id) for user in users]
-            for uid in selected_ids:
-                shared = SharedReport(
-                    shared_by=current_user.id,
-                    shared_with=int(uid),
-                    report_url="/visualise"
-                )
-                db.session.add(shared)
+            bill_ids       = request.form.getlist("bill_ids")
+            share_with_ids = request.form.getlist("shared_with")
+            if not bill_ids or not share_with_ids:
+                flash("Select at least one bill and one recipient.", "error")
+                return redirect(url_for("share_entries"))
+
+            group_id = uuid.uuid4().hex
+            valid_ids = {m.id for m in members}
+
+            for uid in share_with_ids:
+                uid = int(uid)
+                if uid not in valid_ids:
+                    abort(403)
+                for bid in bill_ids:
+                    sr = SharedReport(
+                        bill_id        = int(bid),
+                        shared_by      = current_user.id,
+                        shared_with    = uid,
+                        can_edit       = False,
+                        share_group_id = group_id
+                    )
+                    db.session.add(sr)
             db.session.commit()
-            flash("Report shared successfully!", "success")
-            return redirect(url_for("share_page"))
 
-        return render_template("share.html", users=users)
+            flash("Bills shared successfully!", "success")
+            return redirect(url_for("share_entries"))
 
-    @app.route("/share-data", methods=["POST"])
+        return render_template(
+            "share_entries.html",
+            bills=bills,
+            members=members
+        )
+
+    @app.route("/shared-reports")
     @login_required
-    def handle_share():
-        selected = request.form.getlist("share_to")
-        flash(f"Shared with: {', '.join(selected)}", "success")
-        return redirect(url_for("share_page"))
+    def shared_reports():
+        # Group by share_group_id, pick latest shared_at & who shared
+        groups = (
+        db.session.query(
+            SharedReport.share_group_id,
+            func.max(SharedReport.shared_at).label("shared_at"),
+            SharedReport.shared_by.label("shared_by_id")
+        )
+        .filter(SharedReport.shared_with == current_user.id)
+        .group_by(SharedReport.share_group_id, SharedReport.shared_by)
+        .order_by(desc("shared_at"))
+        .all()
+        )
+
+        # fetch User objects for “shared_by”
+        # e.g. { user.id: user.username }
+        sharers = {
+        u.id: u.username
+        for u in User.query.filter(User.id.in_([g.shared_by_id for g in groups])).all()
+        }
+
+        return render_template("shared_reports.html", groups=groups, sharers=sharers)
+        
+    @app.route("/shared-report/<string:group_id>")
+    @login_required
+    def view_shared_report(group_id):
+        # ensure you’re allowed
+        allowed = SharedReport.query.filter_by(
+            share_group_id=group_id,
+            shared_with=current_user.id
+        ).first()
+        if not allowed:
+            abort(403)
+
+        return render_template("shared_visualise.html", share_group_id=group_id)
 
     # ——— VISUALISATION & API ———
     @app.route("/visualise")
@@ -394,6 +458,67 @@ def register_routes(app):
             })
 
         return jsonify(members=data)
+    
+    @app.route("/api/analytics/shared/<string:group_id>")
+    @login_required
+    def analytics_shared_api(group_id):
+        # 1) Security check: ensure this user was shared that group
+        allowed = SharedReport.query.filter_by(
+            share_group_id=group_id,
+            shared_with=current_user.id
+        ).first()
+        if not allowed:
+            abort(403)
+
+        # 2) Gather the BillEntry objects in that share-group
+        bill_ids = [
+            sr.bill_id
+            for sr in SharedReport.query
+                            .filter_by(share_group_id=group_id)
+                            .all()
+        ]
+        entries = BillEntry.query.filter(BillEntry.id.in_(bill_ids)).all()
+
+        # 3) Build a nested dict of month → category → total
+        raw = defaultdict(lambda: defaultdict(float))
+        for e in entries:
+            mon = e.start_date.strftime('%b %Y')
+            raw[mon][e.category] += e.units * e.cost_per_unit
+
+        # 4) Prepare labels and data arrays
+        months    = sorted(raw.keys(), key=lambda m: datetime.strptime(m, '%b %Y'))
+        utils     = ['Electricity','Water','Gas','WiFi','Other']
+        totalBill = [sum(raw[m].values()) for m in months]
+        util_data = {u: [raw[m].get(u, 0) for m in months] for u in utils}
+        colours   = ['orange','blue','green','violet','grey']
+
+        # 5) Compute one-month comparison and daily average
+        if len(months) >= 2:
+            this_total = totalBill[-1]
+            prev_total = totalBill[-2]
+            pct_change = round((this_total - prev_total) / prev_total * 100, 1)
+        else:
+            this_total = prev_total = pct_change = None
+
+        last_mon_str = months[-1] if months else None
+        if last_mon_str:
+            dt = datetime.strptime(last_mon_str, '%b %Y')
+            days = monthrange(dt.year, dt.month)[1]
+            avg_per_day = round(this_total / days, 2) if this_total and days else None
+        else:
+            avg_per_day = None
+
+        # 6) Return exactly the same JSON shape your charts expect
+        return jsonify({
+        'month_labels':    months,
+        'util_labels':     utils,
+        'util_colours':    colours,
+        'totalBill':       totalBill,
+        'util_data':       util_data,
+        'this_month_total': this_total,
+        'pct_change':      pct_change,
+        'avg_per_day':     avg_per_day,
+        })
 
     @app.route('/entry/<int:entry_id>/delete', methods=['POST'])
     @login_required

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shared Report Analytics</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Chart container styling -->
+  <style>
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      height: 300px;
+      margin: 1rem auto;
+    }
+    .chart-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+
+  <script>
+    // Global Chart.js defaults
+    Chart.defaults.responsive = true;
+    Chart.defaults.maintainAspectRatio = false;
+  </script>
+</head>
+<body>
+  <div class="container my-4">
+    <header class="d-flex justify-content-between align-items-center mb-4">
+      <h1>Shared Report Analytics</h1>
+      <nav>
+        <a href="/dashboard" class="btn btn-outline-primary me-2">Dashboard</a>
+        <a href="/profile" class="btn btn-outline-secondary">My Profile</a>
+      </nav>
+    </header>
+
+    <!-- Overview Section -->
+    <section class="mb-5">
+      <h2>Overview</h2>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="chart-container">
+            <canvas id="doughnut"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-container">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Monthly Analytics Section -->
+    <section class="mb-5">
+      <h2>Monthly Analytics</h2>
+      <div class="mb-3">
+        <label for="monthSelect" class="form-label">Select Month:</label>
+        <select id="monthSelect" class="form-select d-inline-block w-auto"></select>
+        <button class="btn btn-link" onclick="toggleMonthlyView(event)">Toggle Chart/Table</button>
+      </div>
+      <div id="monthlyChartContainer" class="chart-container">
+        <canvas id="barChart"></canvas>
+      </div>
+      <div id="monthlyTableContainer" style="display:none;">
+        <table class="table table-striped">
+          <thead><tr><th>Utility</th><th>Cost</th></tr></thead>
+          <tbody id="monthlyTableBody"></tbody>
+        </table>
+      </div>
+      <div id="monthlySummary" class="card mt-3 p-3"></div>
+    </section>
+
+    <!-- Category Analytics Section -->
+    <section>
+      <h2>Category Analytics</h2>
+      <div class="mb-3">
+        <label for="utilitySelect" class="form-label">Select Category:</label>
+        <select id="utilitySelect" class="form-select d-inline-block w-auto"></select>
+        <button class="btn btn-link" onclick="toggleUtilityView(event)">Toggle Chart/Table</button>
+      </div>
+      <div id="utilityChartContainer" class="chart-container">
+        <canvas id="utilityChart"></canvas>
+      </div>
+      <div id="utilityTableContainer" style="display:none;">
+        <table class="table table-striped">
+          <thead><tr><th>Month</th><th>Usage</th></tr></thead>
+          <tbody id="utilityTableBody"></tbody>
+        </table>
+      </div>
+      <div id="monthlyUsageInsights" class="card mt-3 p-3"></div>
+      <div id="averageUsageInsights" class="card mt-3 p-3"></div>
+      <div id="tipsToSave" class="card mt-3 p-3"></div>
+    </section>
+  </div>
+
+  <!-- Main Script -->
+  <script>
+    // Extract SHARE_GROUP_ID from URL
+    const pathParts = window.location.pathname.split('/');
+    const SHARE_GROUP_ID = pathParts[pathParts.length - 1];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch(`/api/analytics/shared/${SHARE_GROUP_ID}`)
+        .then(res => res.json())
+        .then(data => {
+          const { util_labels, util_colours, month_labels, totalBill, util_data } = data;
+
+          // Overview charts
+          const ctxD = document.getElementById('doughnut').getContext('2d');
+          // Doughnut: breakdown of utilities for the latest month
+          const lastMonthIdx = month_labels.length - 1;
+          const doughnutData = util_labels.map(u => util_data[u][lastMonthIdx]);
+          new Chart(ctxD, {
+            type: 'doughnut',
+            data: {
+              labels: util_labels,
+              datasets: [{ data: doughnutData, backgroundColor: util_colours }]
+            }
+          });
+
+          const ctxL = document.getElementById('lineChart').getContext('2d');
+          new Chart(ctxL, {
+            type: 'line',
+            data: { labels: month_labels, datasets: [{ label: 'Total Spend', data: totalBill }] }
+          });
+
+          // Monthly Analytics
+          const monthSelect = document.getElementById('monthSelect');
+          month_labels.forEach((m, i) => monthSelect.add(new Option(m, i)));
+
+          const ctxB = document.getElementById('barChart').getContext('2d');
+          let barChart = new Chart(ctxB, { type: 'bar', data: { labels: util_labels, datasets: [{ label: 'Cost', data: util_data[util_labels.slice(-1)[0]] }] } });
+
+          monthSelect.addEventListener('change', e => {
+            const idx = +e.target.value;
+            barChart.data.datasets[0].data = util_labels.map(u => util_data[u][idx]);
+            barChart.update();
+            renderMonthlyTable(idx);
+            renderMonthlySummary(idx);
+          });
+
+          renderMonthlyTable(month_labels.length - 1);
+          renderMonthlySummary(month_labels.length - 1);
+
+          // Category Analytics
+          const utilSelect = document.getElementById('utilitySelect');
+          util_labels.forEach(u => utilSelect.add(new Option(u, u)));
+
+          const ctxU = document.getElementById('utilityChart').getContext('2d');
+          let utilityChart = new Chart(ctxU, { type: 'bar', data: { labels: month_labels, datasets: [{ label: util_labels[0], data: util_data[util_labels[0]] }] } });
+
+          utilSelect.addEventListener('change', e => {
+            const util = e.target.value;
+            utilityChart.data.datasets[0].label = util;
+            utilityChart.data.datasets[0].data = util_data[util];
+            utilityChart.update();
+            renderUtilityTable(util);
+            renderInsights(util);
+          });
+
+          renderUtilityTable(util_labels[0]);
+          renderInsights(util_labels[0]);
+
+          // Helper functions
+          function renderMonthlyTable(idx) {
+            const tbody = document.getElementById('monthlyTableBody'); tbody.innerHTML = '';
+            util_labels.forEach(u => tbody.insertAdjacentHTML('beforeend', `<tr><td>${u}</td><td>${util_data[u][idx]}</td></tr>`));
+          }
+          function renderMonthlySummary(idx) {
+            document.getElementById('monthlySummary').textContent = `Total spend in ${month_labels[idx]}: $${totalBill[idx]}`;
+          }
+          function renderUtilityTable(util) {
+            const tbody = document.getElementById('utilityTableBody'); tbody.innerHTML = '';
+            month_labels.forEach((m,i) => tbody.insertAdjacentHTML('beforeend', `<tr><td>${m}</td><td>${util_data[util][i]}</td></tr>`));
+          }
+          function renderInsights(util) {
+            const dataArr = util_data[util];
+            const latest = dataArr[dataArr.length-1];
+            const avg = (dataArr.reduce((a,b)=>a+b,0)/dataArr.length).toFixed(2);
+            document.getElementById('monthlyUsageInsights').textContent = `${util} usage in last month: ${latest}`;
+            document.getElementById('averageUsageInsights').textContent = `Average usage for ${util}: ${avg}`;
+            document.getElementById('tipsToSave').textContent = `Tip: Monitor your ${util} usage weekly to identify spikes.`;
+          }
+
+          // Toggle views
+          window.toggleMonthlyView = event => { event.preventDefault(); document.getElementById('monthlyChartContainer').classList.toggle('d-none'); document.getElementById('monthlyTableContainer').classList.toggle('d-none'); };
+          window.toggleUtilityView = event => { event.preventDefault(); document.getElementById('utilityChartContainer').classList.toggle('d-none'); document.getElementById('utilityTableContainer').classList.toggle('d-none'); };
+        });
+    });
+  </script>
+
+  <!-- Optional: Bootstrap JS bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

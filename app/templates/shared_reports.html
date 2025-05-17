@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meter — Shared Reports</title>
+
+  <!-- Header CSS from history.html :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1} -->
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #f0f0f0;
+    }
+    .logo { font-size: 1.5rem; font-weight: bold; }
+    .button {
+      background-color: black;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .button:hover { background-color: #04AA6D; }
+  </style>
+
+  <!-- Tailwind for utilities -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+  <!-- HEADER from history.html :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3} -->
+  <div class="header">
+    <div class="logo">Meter</div>
+    <div>
+      <a href="{{ url_for('visualise_data') }}" class="button">Dashboard</a>
+      <a href="{{ url_for('profile') }}"        class="button">My Profile</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <h1 class="text-3xl font-bold mb-6">Bills Shared With You</h1>
+
+    <div class="max-h-[50vh] overflow-y-auto space-y-4">
+      {% if groups %}
+        <ul class="space-y-4">
+          {% for g in groups %}
+            <li class="border rounded p-4 flex justify-between items-center">
+              <div>
+                <p class="font-semibold">
+                  Report ID: {{ g.share_group_id[:8] }}…
+                </p>
+                <p class="text-sm text-gray-600">
+                  Shared by {{ sharers[g.shared_by_id] }}
+                  on {{ g.shared_at.strftime('%Y-%m-%d %H:%M') }}
+                </p>
+              </div>
+              <a href="{{ url_for('view_shared_report', group_id=g.share_group_id) }}"
+                 class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                View Report
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-gray-500">No shared reports found.</p>
+      {% endif %}
+    </div>
+  </main>
+
+  <!-- FOOTER from uploadpage.html :contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5} -->
+  <footer class="mt-12 border-t pt-8 pb-4 max-w-4xl mx-auto">
+    <div class="footer-top flex flex-wrap justify-between gap-8 mb-8">
+      <div class="footer-logo text-xl font-bold">Meter</div>
+      <div class="footer-links grid grid-cols-2 gap-6">
+        <div>
+          <h4 class="text-sm font-bold uppercase mb-2">Accounts and Policies</h4>
+          <ul class="space-y-1">
+            <li><a href="{{ url_for('profile') }}">My Profile</a></li>
+            <li><a href="#">User Agreement</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="social flex space-x-4">
+        <a href="#" class="fb w-6 h-6 block" aria-label="Facebook"></a>
+        <a href="#" class="linkedin w-6 h-6 block" aria-label="LinkedIn"></a>
+        <a href="#" class="yt w-6 h-6 block" aria-label="YouTube"></a>
+        <a href="#" class="ig w-6 h-6 block" aria-label="Instagram"></a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
+</body>
+</html>
