@@ -138,12 +138,12 @@ def register_routes(app):
             flash(f"Welcome, {username}! Your account has been created.", "success")
             return redirect(url_for("uploadpage"))
 
-            # GET or validation failure → re-render form
-            return render_template(
-                "login-signup.html",
-                login_form = login_form,
-                reg_form   = reg_form
-            )
+        # GET or validation failure → re-render form
+        return render_template(
+            "login-signup.html",
+            login_form = login_form,
+            reg_form   = reg_form
+        )
 
     @app.route("/google_login/authorized")
     def google_login_authorized():
