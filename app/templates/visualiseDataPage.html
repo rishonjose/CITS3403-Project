@@ -89,6 +89,39 @@
             margin-top: 5%;
         }
 
+        /* --- NAVIGATION ROW --- */
+        .nav-buttons{
+            display:flex;               /* put everything on one line  */
+            align-items:center;
+            gap:20px;                   /* space between buttons       */
+        }
+
+        /* --- DROPDOWN --- */
+        .dropdown-wrapper{ position:relative; }          /* anchor for the menu */
+
+        .dropdown-menu{
+            display:none;               /* hidden by default           */
+            position:absolute;
+            top:105%; left:0;           /* just under the button       */
+            background:#fff;
+            border:1px solid #ccc;
+            border-radius:8px;
+            min-width:180px;
+            z-index:1000;
+        }
+
+        .dropdown-menu a{
+            display:block;
+            padding:10px 15px;
+            text-decoration:none;
+            color:#000;
+        }
+
+        .dropdown-menu a:hover{ background:#f0f0f0; }
+
+        /* utility class the JS will toggle */
+        .show{ display:block; }
+
         /* Modal styles */
         .modal {
             display: none; /* Hidden by default */
@@ -119,6 +152,18 @@
     <header class="nav">
         <a href="/" class="logo">Meter</a>
         <div class="nav-buttons">
+
+            <!-- Share dropdown -->
+            <div class="dropdown-wrapper" id="shareWrapper">
+            <button id="shareBtn" class="button">Share!</button>
+
+            <div id="shareMenu" class="dropdown-menu">
+                <a href="{{ url_for('share_entries') }}">Share with others</a>
+                <a href="{{ url_for('shared_reports') }}">Shared Reports</a>
+            </div>
+            </div>
+            <!-- End of Share dropdown -->
+
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('visualise_data') }}" class="button1"> Dashboard</a>
                 <a href="{{ url_for('uploadpage') }}" class="button0"> Upload</a>
@@ -270,5 +315,23 @@
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
     <script src="{{ url_for('static', filename='js/visualiseData.js') }}"></script>
+
+    <script>
+    const shareBtn   = document.getElementById('shareBtn');
+    const shareMenu  = document.getElementById('shareMenu');
+    const shareWrap  = document.getElementById('shareWrapper');
+
+    /* open / close on click */
+    shareBtn.addEventListener('click', e=>{
+    e.stopPropagation();          // keep the menu open
+    shareMenu.classList.toggle('show');
+    });
+
+    /* close if you click anywhere else */
+    document.addEventListener('click', ()=>{
+    shareMenu.classList.remove('show');
+    });
+    </script>
+
 </body>
 </html>
