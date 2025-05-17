@@ -286,9 +286,10 @@
     <div class="nav-buttons">
     {% if current_user.is_authenticated %}
       <!-- Dashboard button -->
-      <a href="{{ url_for('visualise_data') }}" class="button0"> Dashboard</a>
-      <!-- Profile button -->
-      <a  href="{{ url_for('profile') }}"  class="button0">My Profile</a>
+        <a href="{{ url_for('visualise_data') }}" class="button0"> Dashboard</a>
+        <a href="{{ url_for('uploadpage') }}" class="button1"> Upload</a>
+        <a href="{{ url_for('profile') }}" class="button0">My Profile</a>
+        <a href="{{ url_for('logout') }}" class="button1">Logout</a>
     {% else %}
     <a href="{{ url_for('login') }}" class="button0">Login</a>
     {% endif %}
