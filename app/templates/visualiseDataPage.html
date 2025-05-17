@@ -149,7 +149,7 @@
             <!-- Monthly Summary Card -->
             <div id="monthlySummary" class="card"></div>
             <div class="Tables">
-                <button class="button" onclick="toggleMonthlyView()">Switch to Table View</button>
+                <button class="button0" onclick="toggleMonthlyView()">Switch to Table View</button>
             </div>
             <div id="monthlyTable" class="Tables" style="display: none;">
                 <table class="Tables-collapse">
@@ -198,8 +198,8 @@
             <p>No bills found—try uploading one!</p>
             {% endfor %}
 
-            <button class="button" style="margin-right:20px" onclick="window.location.href='{{ url_for('uploadpage') }}'">Add Bill</button>
-            <button class="button" onclick="window.location.href='{{ url_for('bill_history') }}'">Full bill history</button>
+            <button class="button0" style="margin-right:20px" onclick="window.location.href='{{ url_for('uploadpage') }}'">Add Bill</button>
+            <button class="button0" onclick="window.location.href='{{ url_for('bill_history') }}'">Full bill history</button>
         </aside>
     </div>
     <hr class="solid">
@@ -217,7 +217,7 @@
                 <div class="utility-chart" style="flex:2;">
                     <canvas id="utilityChart"></canvas>
                     <div class="Tables">
-                        <button class="button" onclick="toggleUtilityView()">Switch to Table View</button>
+                        <button class="button0" onclick="toggleUtilityView()">Switch to Table View</button>
                     </div>
                     <div id="utilityTable" class="Tables" style="display: none;">
                         <table class="Tables-collapse">
