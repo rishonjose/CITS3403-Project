@@ -35,9 +35,9 @@
     <div class="container mx-auto px-4 flex justify-between items-center">
         <a href="/" class="text-4xl font-bold">Meter</a>
         <div class="flex items-center space-x-4">
-        <a href="#family-section"
+        <a href="{{ url_for('visualise_data') }}"
             class="px-4 py-2 bg-gray-700 rounded-full hover:bg-gray-600 transition">
-            My Family
+            Dashboard
         </a>
         <a href="/logout"
             class="px-4 py-2 bg-red-500 rounded-full hover:bg-red-600 transition">
