@@ -1,6 +1,4 @@
 import os
-import random
-import string
 from datetime import date, datetime
 
 from flask import (
@@ -238,6 +236,11 @@ def register_routes(app):
     @app.route("/upload", methods=["GET", "POST"])
     @login_required
     def uploadpage():
+        # only admins may upload
+        if current_user.role != 'admin':
+            flash("You don’t have permission to upload bills.  Please contact your household admin.", "error")
+            return redirect(url_for("visualise_data"))
+        
         form = BillEntryForm()
 
         # PDF upload
@@ -318,20 +321,26 @@ def register_routes(app):
     @app.route("/vis")
     @login_required
     def visualise_data():
+        # show the 4 most recent bills for everyone in my household
+        hh_id = current_user.household_id
         recent = (
             BillEntry.query
-            .filter_by(user_id=current_user.id)
+            .join(User, User.id == BillEntry.user_id)
+            .filter(User.household_id == hh_id)
             .order_by(BillEntry.created_at.desc())
             .limit(4)
-            .all()
-        )
+            .all())
         return render_template("visualiseDataPage.html", recent_bills=recent)
 
     @app.route('/api/analytics')
     @login_required
     def analytics_api():
         raw = defaultdict(lambda: defaultdict(float))
-        entries = BillEntry.query.filter_by(user_id=current_user.id).all()
+        hh_id = current_user.household_id
+        entries = (BillEntry.query
+                   .join(User, User.id == BillEntry.user_id)
+                   .filter(User.household_id == hh_id)
+                   .all())
         for e in entries:
             mon = e.start_date.strftime('%b %Y')
             raw[mon][e.category] += e.units * e.cost_per_unit
