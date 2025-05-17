@@ -1,7 +1,7 @@
 from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer, Float, Date, DateTime, ForeignKey
-from . import db
+from .extensions import db
 from flask import url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
