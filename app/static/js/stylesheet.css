@@ -200,13 +200,6 @@ th, td {
     border-radius: 8px;
     margin-top: 1rem;
 }
-
-/* Chart Containers */
-canvas {
-    max-width: 100%;
-    height: auto;
-}
-
 /* Upload Page Specific */
 .form-group {
     display: flex;
