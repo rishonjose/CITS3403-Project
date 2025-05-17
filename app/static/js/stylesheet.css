@@ -247,3 +247,8 @@ canvas {
     width: 100%;
     border-collapse: collapse;
 }
+
+/* hyperlinks */
+a {
+  text-decoration: none;
+}
