@@ -59,6 +59,7 @@ def login():
 
         if user and user.check_password(pw):
             login_user(user)
+            session["household_code"] = user.household_code
             flash("Logged in successfully!", "success")
             next_page = request.args.get("next")
             return redirect(next_page or url_for("uploadpage"))
@@ -85,14 +86,15 @@ def register():
         email    = reg_form.email.data.lower().strip()
         password = reg_form.password.data
         role     = reg_form.role.data                   # must be a SelectField on your form
-        code     = (reg_form.household_code.data or "").strip().upper()
+        raw = reg_form.household_code.data
+        code = raw.strip().upper() if raw and raw.strip() else None
 
         # 2) Create the user object and flush so it gets an ID
         new_user = User(
             username = username,
             email    = email,
             role     = role,
-            household_code = code  # temporarily store; we'll override for admin
+            **({"household_code": code} if code else {})  # temporarily store; we'll override for admin
         )
         new_user.set_password(password)
         db.session.add(new_user)
@@ -110,6 +112,7 @@ def register():
             db.session.add(new_hh)
             db.session.flush()  # now new_hh.id is available
             new_user.household_id = new_hh.id
+            new_user.household_code = code
         else:
             # regular member must supply a valid code
             hh = Household.query.filter_by(code=code).first()
@@ -117,6 +120,7 @@ def register():
                 flash("Invalid household code.", "error")
                 return redirect(url_for("register"))
             new_user.household_id = hh.id
+            new_user.household_code = code
 
         # 4) Commit everything
         db.session.commit()
@@ -164,6 +168,7 @@ def google_login_authorized():
             db.session.commit()
 
         login_user(user)
+        session["household_code"] = user.household_code
         flash("Logged in with Google!", "success")
         return redirect(url_for("uploadpage"))
     except Exception as e:
@@ -352,6 +357,28 @@ def analytics_api():
         'pct_change': pct_change,
         'avg_per_day': avg_per_day,
     })
+    
+@application.route('/api/family', methods=['GET'])
+@login_required
+def api_family():
+    """Return all users in the current_user’s household as JSON."""
+    hh_id = current_user.household_id
+    if not hh_id:
+        return jsonify(members=[])
+
+    # grab everyone in that household
+    members = User.query.filter_by(household_id=hh_id).all()
+    data = []
+    for u in members:
+        data.append({
+            'id':         u.id,
+            'first_name': getattr(u, 'first_name', ''),
+            'last_name':  getattr(u, 'last_name', ''),
+            'email':      u.email,
+            'role':       getattr(u, 'role', 'Member')
+        })
+
+    return jsonify(members=data)
 
 @application.route('/entry/<int:entry_id>/delete', methods=['POST'])
 @login_required

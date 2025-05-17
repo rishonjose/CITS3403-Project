@@ -45,7 +45,7 @@ class User(db.Model, UserMixin):
     profile_pic: Mapped[Optional[str]] = mapped_column(String(256), nullable=True, server_default='images/default-avatar-icon.jpg')
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
     role: Mapped[str] = mapped_column(String(20), nullable=False, server_default='user')
-    household_code: Mapped[Optional[str]] = mapped_column(String(8), unique=True, nullable=True)
+    household_code: Mapped[Optional[str]] = mapped_column(String(8), unique=False, nullable=True)
     household_id: Mapped[Optional[int]] = mapped_column(ForeignKey('households.id', ondelete='SET NULL'), nullable=True)
     
     # relationships
