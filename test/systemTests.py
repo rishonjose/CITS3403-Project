@@ -19,7 +19,7 @@ class SystemTestCase(unittest.TestCase):
         db.create_all()
 
         # Add a test user
-        user = User(username='tester', email='tester@example.com', profile_pic='default.png')
+        user = User(username='tester', email='tester@example.com', role='admin')
         user.set_password('password123')
         db.session.add(user)
         db.session.commit()
@@ -36,16 +36,19 @@ class SystemTestCase(unittest.TestCase):
         response = self.client.post('/register', data={
             'username': 'adminuser',
             'email': 'admin@example.com',
-            'Role': 'admin',
+            'role': 'admin',
             'password': 'adminpass',
-            'confirm': 'adminpass'
+            'confirm_password': 'adminpass'
         }, follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Account created for adminuser!', response.data)
+        self.assertIn(b'Welcome, adminuser! Your account has been created', response.data)
     
     def test_register_user_with_valid_code(self):
-        # Create a household with a known code
-        household = Household(code='TESTCODE1')
+        user = User.create_with_password(username='admin', email='admin@example.com', password='adminpass')
+        db.session.add(user)
+        db.session.commit()
+        
+        household = Household(code='TESTCODE1',name='Test Household', created_by=user.id)
         db.session.add(household)
         db.session.commit()
 
@@ -54,12 +57,12 @@ class SystemTestCase(unittest.TestCase):
             'email': 'user1@example.com',
             'Role': 'user',
             'password': 'userpass',
-            'confirm': 'userpass',
+            'confirm_password': 'userpass',
             'household_code': 'TESTCODE1'
         }, follow_redirects=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Account created for user1!', response.data)
+        self.assertIn(b'Welcome, user1! Your account has been created', response.data)
 
     def test_homepage_access(self):
         response = self.client.get('/')
