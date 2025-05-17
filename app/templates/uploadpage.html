@@ -277,39 +277,34 @@
     .social .yt { background-image: url('{{ url_for('static', filename='images/youtube.svg') }}'); }
     .social .ig { background-image: url('{{ url_for('static', filename='images/instagram.svg') }}'); }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='js/stylesheet.css') }}">
 </head>
 <body>
-
   <!-- HEADER / HERO -->
-  <header class="hero">
-<nav>
-  <div class="logo">Meter</div>
-  {% if current_user.is_authenticated %}
-    <div class="nav-actions">
+  <header class="nav">
+    <a href="/" class="logo">Meter</a>
+    <div class="nav-buttons">
+    {% if current_user.is_authenticated %}
       <!-- Dashboard button -->
-      <a href="{{ url_for('visualise_data') }}" 
-         class="account-btn">
-        Dashboard
-      </a>
-      <!-- Profile button -->
-      <a href="{{ url_for('profile') }}" 
-         class="account-btn">
-        My Profile
-      </a>
+        <a href="{{ url_for('visualise_data') }}" class="button0"> Dashboard</a>
+        <a href="{{ url_for('uploadpage') }}" class="button1"> Upload</a>
+        <a href="{{ url_for('profile') }}" class="button0">My Profile</a>
+        <a href="{{ url_for('logout') }}" class="button1">Logout</a>
+    {% else %}
+    <a href="{{ url_for('login') }}" class="button0">Login</a>
+    {% endif %}
     </div>
-  {% else %}
-    <a href="{{ url_for('login') }}" class="account-btn">Login</a>
-  {% endif %}
-</nav>
+  </header>
+  <header class="hero">
     <div class="hero-content">
-      <h1>Upload Your Data Here</h1>
+      <h1 class="title" style="line-height: 100px">Upload Your Data Here</h1>
       <p>Redefining utility tracking — smarter, simpler, cleaner.</p>
       <form action="{{ url_for('uploadpage') }}" 
             method="POST" 
             enctype="multipart/form-data"
             class="file-btn-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label class="file-btn">
+        <label class="button0 file-btn">
           Choose PDF
           <input 
             type="file" 
@@ -343,10 +338,10 @@
       
       <div class="tabs">
         <button class="active" data-type="Electricity">Electricity</button>
-        <button data-type="Water">Water</button>
-        <button data-type="Gas">Gas</button>
-        <button data-type="WiFi">WiFi</button>
-        <button data-type="Other">Other</button>
+        <button data-type="Water" class="button0">Water</button>
+        <button data-type="Gas" class="button0">Gas</button>
+        <button data-type="WiFi" class="button0">WiFi</button>
+        <button data-type="Other" class="button0">Other</button>
       </div>
 
       <form class="data-form" method="POST" action="{{ url_for('uploadpage') }}">

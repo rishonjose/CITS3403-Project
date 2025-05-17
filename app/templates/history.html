@@ -82,16 +82,17 @@
         cursor: pointer;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='js/stylesheet.css') }}">
 </head>
 <body>
     <!-- Header -->
-    <div class="header">
-        <div class="logo">Meter</div>
+    <header class="nav">
+        <a href="/" class="logo">Meter</a>
         <div>
             <a href="{{ url_for('visualise_data') }}" class="button">Dashboard</a>
             <a href="{{ url_for('profile') }}" class="button">My Profile</a>
         </div>
-    </div>
+    </header>
 
     <!-- Page Title -->
     <div style="text-align:center; margin-top: 20px;">
