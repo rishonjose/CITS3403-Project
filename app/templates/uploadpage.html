@@ -38,7 +38,6 @@
       padding: 2rem 1rem;
       text-align: center;
     }
-    
     header.hero::before {
       content: '';
       position: absolute;
@@ -52,6 +51,10 @@
       align-items: center;
       max-width: 1024px;
       margin: 0 auto 2rem;
+    }
+    header.hero nav .nav-actions {
+      display: flex;
+      gap: 0.5rem;    /* space between Dashboard & My Profile */
     }
     header.hero nav .logo {
       font-size: 1.25rem;
@@ -160,7 +163,8 @@
       height: 24px;
       margin-right: 0.5rem;
     }
-    .form-group input {
+    .form-group input, 
+    .form-group select {
       flex: 1;
       border: none;
       background: transparent;
@@ -175,19 +179,48 @@
       cursor: pointer;
     }
 
+    /* Error styles */
+    .error {
+      color: #c00;
+      font-size: 0.9rem;
+      margin-top: -1rem;
+      margin-bottom: 1rem;
+    }
+
     /* Disabled-looking submit */
     .btn.submit.disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
 
-    /* Error message */
-    .error {
-      color: #c00;
-      font-size: 0.9rem;
-      margin-top: -1rem;
-      margin-bottom: 1rem;
-      display: none;
+    /* Flash messages */
+    .flash-container {
+      max-width: 800px;
+      margin: 1rem auto;
+      display: grid;
+      gap: 0.5rem;
+    }
+    .flash {
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      color: var(--brand-white);
+      position: relative;
+      padding-right: 2rem;
+    }
+    .flash-success { background: #4CAF50; }
+    .flash-error   { background: #f44336; }
+    .flash-info    { background: #2196F3; }
+    .flash-close {
+      position: absolute;
+      top: 50%;
+      right: 0.5rem;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--brand-white);
+      font-size: 1.2rem;
+      line-height: 1;
+      cursor: pointer;
     }
 
     /* ========== FOOTER ========== */
@@ -239,10 +272,10 @@
       display: inline-block;
       background-size: cover;
     }
-    .social .fb { background-image: url('fb.svg'); }
-    .social .linkedin { background-image: url('linkedin.svg'); }
-    .social .yt { background-image: url('youtube.svg'); }
-    .social .ig { background-image: url('instagram.svg'); }
+    .social .fb { background-image: url('{{ url_for('static', filename='images/fb.svg') }}'); }
+    .social .linkedin { background-image: url('{{ url_for('static', filename='images/linkedin.svg') }}'); }
+    .social .yt { background-image: url('{{ url_for('static', filename='images/youtube.svg') }}'); }
+    .social .ig { background-image: url('{{ url_for('static', filename='images/instagram.svg') }}'); }
   </style>
   <link rel="stylesheet" href="{{ url_for('static', filename='js/stylesheet.css') }}">
 </head>
@@ -253,15 +286,59 @@
     <a href="#" class="button0" data-page-redirect data-href="{{ url_for('profile') }}">My Profile</a>
   </header>
   <header class="hero">
+<nav>
+  <div class="logo">Meter</div>
+  {% if current_user.is_authenticated %}
+    <div class="nav-actions">
+      <!-- Dashboard button -->
+      <a href="{{ url_for('visualise_data') }}" 
+         class="account-btn">
+        Dashboard
+      </a>
+      <!-- Profile button -->
+      <a href="{{ url_for('profile') }}" 
+         class="account-btn">
+        My Profile
+      </a>
+    </div>
+  {% else %}
+    <a href="{{ url_for('login') }}" class="account-btn">Login</a>
+  {% endif %}
+</nav>
     <div class="hero-content">
       <h1 class="title" style="line-height: 100px">Upload Your Data Here</h1>
       <p>Redefining utility tracking — smarter, simpler, cleaner.</p>
-      <label class="button0 file-btn">
-        Choose PDF
-        <input type="file" accept="application/pdf" />
-      </label>
+      <form action="{{ url_for('uploadpage') }}" 
+            method="POST" 
+            enctype="multipart/form-data"
+            class="file-btn-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="button0 file-btn">
+          Choose PDF
+          <input 
+            type="file" 
+            name="pdf_file" 
+            accept="application/pdf" 
+            onchange="this.form.submit()" 
+          />
+        </label>
+      </form>
     </div>
   </header>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, msg in messages %}
+          <div class="flash flash-{{ category }}">
+            <span class="flash-text">{{ msg }}</span>
+            <button class="flash-close" aria-label="Dismiss">&times;</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <!-- MANUAL ENTRY -->
   <main>
@@ -276,30 +353,63 @@
         <button data-type="Other" class="button0">Other</button>
       </div>
 
-      <form class="data-form" action="{{ url_for('uploadpage') }}" method="POST">
+      <form class="data-form" method="POST" action="{{ url_for('uploadpage') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="category" id="form-category" value="Electricity" />
-      
+
+        <!-- Units Field -->
         <div class="form-group">
           <img id="icon-one" src="{{ url_for('static', filename='images/bolt-icon.svg') }}" alt="Icon" />
-          <input id="field-one" name="field_one" type="text" placeholder="Energy Consumed" autocomplete="off" />
+          {{ form.units(class="w-full border-none bg-transparent focus:outline-none", id="field-one", placeholder="Energy Consumed") }}
         </div>
-      
+        {% if form.units.errors %}
+          <div class="error">
+            {% for error in form.units.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Cost Field -->
         <div class="form-group">
           <img id="icon-two" src="{{ url_for('static', filename='images/cost-icon.svg') }}" alt="Icon" />
-          <input id="field-two" name="field_two" type="text" placeholder="Cost per kWh" autocomplete="off" />
+          {{ form.cost_per_unit(class="w-full border-none bg-transparent focus:outline-none", id="field-two", placeholder="Cost per kWh") }}
         </div>
-      
+        {% if form.cost_per_unit.errors %}
+          <div class="error">
+            {% for error in form.cost_per_unit.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Start Date Field -->
         <div class="form-group">
           <img src="{{ url_for('static', filename='images/calendar-icon.svg') }}" alt="Start icon" />
           <label for="start-date">Start Date:</label>
-          <input id="start-date" name="start_date" type="date" />
+          {{ form.start_date(class="w-full border-none bg-transparent focus:outline-none", id="start-date") }}
         </div>
-      
+        {% if form.start_date.errors %}
+          <div class="error">
+            {% for error in form.start_date.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- End Date Field -->
         <div class="form-group">
           <img src="{{ url_for('static', filename='images/calendar-icon.svg') }}" alt="End icon" />
           <label for="end-date">End Date:</label>
-          <input id="end-date" name="end_date" type="date" />
+          {{ form.end_date(class="w-full border-none bg-transparent focus:outline-none", id="end-date") }}
         </div>
+        {% if form.end_date.errors %}
+          <div class="error">
+            {% for error in form.end_date.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
 
         <button type="submit" class="btn submit disabled">Submit Details</button>
       </form>
@@ -373,10 +483,8 @@
           fieldOne.placeholder = one;
           fieldTwo.placeholder = two;
           categoryIn.value = selectedType;
-
           iconOne.src = `${staticBasePath}${iconMap[selectedType]}`;
           iconTwo.src = `${staticBasePath}cost-icon.svg`;
-
           fieldOne.value = '';
           fieldTwo.value = '';
           updateSubmitState();
@@ -394,39 +502,38 @@
       [fieldOne, fieldTwo, startDate, endDate].forEach(el =>
         el.addEventListener('input', updateSubmitState)
       );
-  
+
+      // Prevent submitting invalid form
       submitBtn.addEventListener('click', e => {
         if (submitBtn.classList.contains('disabled')) {
           e.preventDefault();
         }
       });
-  
+
+      // Update file button text while preserving functionality
       document.querySelector('.file-btn input[type="file"]')?.addEventListener('change', (e) => {
         if (e.target.files.length) {
           const fileName = e.target.files[0].name;
-          document.querySelector('.file-btn').textContent = 
-            fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName;
+          const fileBtn = document.querySelector('.file-btn');
+          // Preserve existing input element while updating text
+          fileBtn.innerHTML = `
+            ${fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName}
+            ${fileBtn.innerHTML}  <!-- Keep original input element -->
+          `;
         }
       });
   
-      document.querySelector('.data-form')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        submitBtn.textContent = 'Submitted!';
-        submitBtn.style.backgroundColor = 'black';
-        submitBtn.style.color = 'white';
-        fieldOne.value = '';
-        fieldTwo.value = '';
-        startDate.value = '';
-        endDate.value = '';
-        updateSubmitState();
-      });
-  
       updateSubmitState();
+
+      // flash dismiss handlers
+      document.querySelectorAll('.flash').forEach(flash => {
+        const closeBtn = flash.querySelector('.flash-close');
+        closeBtn.addEventListener('click', () => flash.remove());
+        setTimeout(() => { if (flash.parentNode) flash.remove(); }, 5000);
+      });
     });
   </script>
   <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
   
-  
 </body>
 </html>
-

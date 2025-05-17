@@ -8,227 +8,264 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
         .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 20px;
-        background-color: #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
         }
-        .button, .card button{
-        background-color: black;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 10px;
-        cursor: pointer;
+        .button, .card button {
+            background-color: black;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
         }
-        .button:hover, .card button:hover{
-        background-color: #04AA6D;
+        .button:hover, .card button:hover {
+            background-color: #04AA6D;
         }
         .charts {
-        display: flex;
-        justify-content: space-around;
+            display: flex;
+            justify-content: space-around;
         }
         canvas {
-        max-width: 40%;
-        max-height: 100%;
+            max-width: 40%;
+            max-height: 100%;
         }
         .Monthly-Analytics {
-        display: flex;
-        justify-content: space-around;
-        margin: 40px 40px;
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 40px;
         }
         .monthly-analytics, .recent-bills {
-        width: 45%;
-        margin-left: 100px;
+            width: 45%;
+            margin-left: 100px;
         }
         .monthly-analytics h2, .recent-bills h2 {
-        font-size: 24px;
-        margin-bottom: 10px;
-        margin-left: 20px;
+            font-size: 24px;
+            margin-bottom: 10px;
+            margin-left: 20px;
         }
         .dropdown {
-        margin-left: 20px;
-        margin-bottom: 20px;
-        font-size: 18px;
-        position: relative; top: 15px; 
+            margin-left: 20px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            position: relative;
+            top: 15px;
         }
         .card {
-        background-color: #f8f8f8;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
         .card h3 {
-        margin-top: 0;
+            margin-top: 0;
         }
         .card button {
-        padding: 5px 10px;
+            padding: 5px 10px;
         }
-        .Tables{
-        text-align: center;
-        margin-top: 20px;
+        .Tables {
+            text-align: center;
+            margin-top: 20px;
         }
         .Tables th, .Tables td {
-        padding: 10px;
-        border: 1px solid #ccc;
+            padding: 10px;
+            border: 1px solid #ccc;
         }
-        .Tables-collapse{
-        width: 100%;
-        border-collapse: collapse; 
-        font-size: 16px;
+        .Tables-collapse {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
         }
         hr.solid {
-        border-top: 3px solid #bbb;
-        margin-top: 5%;
+            border-top: 3px solid #bbb;
+            margin-top: 5%;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; inset: 0; /* full-screen overlay */
+            background: rgba(0,0,0,0.5);
+            justify-content: center; /* flex centering */
+            align-items: center;
+        }
+        /* inner box */
+        .modal-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            width: 300px;
+            position: relative;
+        }
+        /* close “×” */
+        .close {
+            position: absolute; top: 8px; right: 12px;
+            font-size: 1.5rem; cursor: pointer;
         }
     </style>
 </head>
 
 <body>
-    <!-- Header with meter logo and navigation buttons -->
+    <!-- Header -->
     <div class="header">
         <div class="logo">Meter</div>
         <div>
-            <button class="button" data-page-redirect data-href="{{ url_for('profile') }}">My Family</button>
-            <button class="button" data-page-redirect data-href="{{ url_for('profile') }}">My Profile</button>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="button">Logout</a>
+                <a href="{{ url_for('profile') }}" class="button">My Profile</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="button">Login</a>
+            {% endif %}
         </div>
     </div>
 
-  <!-- Overview Section -->
+    <!-- Overview Section -->
     <div style="text-align: center;"><h1>Bill Analytics Page</h1></div>
-    <div>
+    <section>
         <h2 style="margin-left: 10%;">Your Bills Overview</h2>
         <div class="charts">
             <canvas id="doughnut"></canvas>
             <canvas id="lineChart"></canvas>
         </div>
-    </div>
-    
+    </section>
     <hr class="solid">
 
-    <!-- Monthly Analytics Section -->
+    <!-- Monthly Analytics -->
     <div class="Monthly-Analytics">
-
-        <!-- Left Monthly Overveiw Section -->
-        <div class="monthly-analytics">
-            <h2 style="display:inline-block;">Monthly Analytics Overview</h2>
-
-            <!-- Monthly Graph/Table --->
-            <div style="display:inline-block;">
-                <div style="position: relative; left: 60px; top: 10px; ">Select date</div>
-                <select style="margin-left:60px;" id="monthSelect" class="dropdown">
-                    <!-- Monthly Dropdown --->
-                </select>
-            </div>
-
-            <canvas id="barChart" style="max-width: 100%;"></canvas>
+        <article class="monthly-analytics">
+            <h2>Monthly Analytics Overview</h2>
+            <label for="monthSelect" class="dropdown">Select Month:</label>
+            <select id="monthSelect" class="dropdown"></select>
+            <canvas id="barChart"></canvas>
+            <!-- Monthly Summary Card -->
+            <div id="monthlySummary" class="card"></div>
             <div class="Tables">
                 <button class="button" onclick="toggleMonthlyView()">Switch to Table View</button>
             </div>
             <div id="monthlyTable" class="Tables" style="display: none;">
                 <table class="Tables-collapse">
-                    <thead>
-                        <!-- Utility Labels Table Data--->
-                    </thead>
-                    <tbody>
-                        <!-- Month Utility Cost Table Data--->
-                    </tbody>
+                    <thead></thead>
+                    <tbody></tbody>
                 </table>
             </div>
-
-            <!-- Monthly Graph/Table Information--->
-            <p><b id="selectedMonthHeading"></b><br>
-            <small> (Electrical, Water,  Wi-Fi and Gas)</small></p>
-            <div class="card" style="height:220px;"> 
-            </div>
-        </div>
-
-        <!-- Right Your Recent Bills Section -->
-        <div class="recent-bills">
+            <p><b id="selectedMonthHeading"></b></p>
+        </article>
+      
+        <aside class="recent-bills">
             <h2>Your Recent Bills</h2>
+            {% for bill in recent_bills %}
             <div class="card">
-                <h3>January Electrical Bill</h3>
-                <p>(Uploaded 3rd Feb 2025)</p>
-                <p>Monthly electrical bill for January.</p>
-                <p>Total payment amount: $296.18</p>
-                <button>Edit</button>
-                <button>Delete</button>
+                <h3>
+                {{ bill.category }} Bill —
+                {{ bill.start_date.strftime('%B %Y') }}
+                to
+                {{ bill.end_date.strftime('%B %Y') }}
+                </h3>
+                <p>(Uploaded {{ bill.created_at.strftime('%-d %b %Y') }})</p>
+                <p>Total payment amount: ${{ (bill.units * bill.cost_per_unit) | round(2) }}</p>
+
+                <!-- EDIT button (no CSRF token here) -->
+                <button
+                class="edit-btn"
+                data-id="{{ bill.id }}"
+                data-category="{{ bill.category }}"
+                data-units="{{ bill.units }}"
+                data-cost="{{ bill.cost_per_unit }}"
+                data-start="{{ bill.start_date }}"
+                data-end="{{ bill.end_date }}"
+                >Edit</button>
+
+                <!-- DELETE form with CSRF token inside it -->
+                <form
+                    action="{{ url_for('delete_entry', entry_id=bill.id) }}"
+                    method="POST"
+                    style="display:inline; margin-left:8px;"
+                    onsubmit="return confirm('Really delete this bill?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Delete</button>
+                </form>
             </div>
-            <div class="card">
-                <h3>January Water Bill</h3>
-                <p>(Uploaded 3rd feb 2025)</p>
-                <p>Monthly water bill for January.</p>
-                <p>Total payment amount: $204.15</p>
-                <button>Edit</button>
-                <button>Delete</button>
-            </div>
-            <div class="card">
-                <h3>January Wi-Fi Bill</h3>
-                <p>(Uploaded 1st feb 2025)</p>
-                <p>Monthly Wi-Fi bill for January.</p>
-                <p>Total payment amount: $80.00</p>
-                <button>Edit</button>
-                <button>Delete</button>
-            </div>
-            <button class="button" style="margin-right:20px">Add Bill</button>
-            <button class="button">Full bill history</button>
-        </div>
+            {% else %}
+            <p>No bills found—try uploading one!</p>
+            {% endfor %}
+
+            <button class="button" style="margin-right:20px" onclick="window.location.href='{{ url_for('uploadpage') }}'">Add Bill</button>
+            <button class="button" onclick="window.location.href='{{ url_for('bill_history') }}'">Full bill history</button>
+        </aside>
     </div>
     <hr class="solid">
 
-    <!-- Utilties Analytics Section -->
-    <div class="utility-section">
-        <div>
-            <h1 style="display:inline-block; margin-left:100px; margin-top:80px;" id="selectedUtilityHeading"></h1>
-            <div style="text-align: right; margin-right:250px;">
-                <div>Select Category</div>
-                <select id="utilitySelect" class="dropdown">
-                    <!-- Utilties Dropdown Section -->
-                </select>
+    <!-- Utilities Analytics -->
+    <section class="utility-section">
+        <article class="utility-analytics">
+            <header>
+                <h1 id="selectedUtilityHeading">…</h1>
+                <label for="utilitySelect" class="dropdown">Select Category</label>
+                <select id="utilitySelect" class="dropdown"></select>
+            </header>
+            <div class="utility-content" style="display: flex; justify-content: space-around; margin: 40px 100px;">
+                <!-- left column: chart/table toggle -->
+                <div class="utility-chart" style="flex:2;">
+                    <canvas id="utilityChart"></canvas>
+                    <div class="Tables">
+                        <button class="button" onclick="toggleUtilityView()">Switch to Table View</button>
+                    </div>
+                    <div id="utilityTable" class="Tables" style="display: none;">
+                        <table class="Tables-collapse">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- right column: the three cards -->
+                <div class="utility-cards" style="flex:1;">
+                    <div class="card" id="monthlyUsageInsights"></div>
+                    <div class="card" id="averageUsageInsights"></div>
+                    <div class="card" id="tipsToSave"></div>
+                </div>
             </div>
-        </div>
-        <div style="display: flex; justify-content: space-around; margin: 40px 100px;">
+        </article>
+    </section>
 
-            <!-- Left Utilties Graph Section -->
-            <div style="flex: 2;">
-                <canvas id="utilityChart" style="max-width: 100%;"></canvas>
-                <div class="Tables">
-                    <button class="button" onclick="toggleUtilityView()">Switch to Table View</button>
+    <!-- Edit Bill Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span id="editClose" class="close">&times;</span>
+            <h2>Edit Bill</h2>
+            <form id="editForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="category" id="editCategory" />
+                <div>
+                    <label>Units:</label>
+                    <input type="text" name="field_one" id="editUnits" />
                 </div>
-                <div id="utilityTable" class="Tables" style="display: none;">
-                    <table  class="Tables-collapse">
-                        <thead>
-                            <!-- Month Labels Table Data--->
-                        </thead>
-                        <tbody>
-                            <!-- Month Utility Cost Table Data--->
-                        </tbody>
-                    </table>
+                <div>
+                    <label>Cost per unit:</label>
+                    <input type="text" name="field_two" id="editCost" />
                 </div>
-            </div>
-            
-            <!-- Right Utilites Information Cards -->
-            <div style="flex: 1;">
-                <div class="card">
-                    <h3>Monthly Usage Insights</h3><br><br><br>
+                <div>
+                    <label>Start date:</label>
+                    <input type="date" name="start_date" id="editStart" />
                 </div>
-                <div class="card">
-                    <h3>Average Usage Insights</h3><br><br><br>
+                <div>
+                    <label>End date:</label>
+                    <input type="date" name="end_date" id="editEnd" />
                 </div>
-                <div class="card">
-                    <h3>Tips to Save</h3><br><br><br>
-                </div>
-            </div>
+                <button type="submit">Save Changes</button>
+            </form>
         </div>
     </div>
+
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/auth-redirect.js') }}"></script>
     <script src="{{ url_for('static', filename='js/visualiseData.js') }}"></script>
 </body>
 </html>
-

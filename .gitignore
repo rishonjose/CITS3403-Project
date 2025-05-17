@@ -1,5 +1,21 @@
 .idea
 .DS_Store
+
+# Local venv
+application-venv/
+
+# Byte-compiled / optimized / DLL files
 __pycache__
-app.db
+
+/app/uploads/
+
+# database
+*.db
 *.sqlite3
+
+# Environments
+/venv/
+/envs/
+/env
+.env
+.venv
