@@ -3,8 +3,8 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     margin: 24px;
     padding: 24px;
+    margin-top:70px;
 }
-
 header.nav {
     position: fixed;
     top: 0;
@@ -24,60 +24,55 @@ header.nav {
     font-size: 30px;
     line-height: 40px;
     font-weight: 800;
+    text-decoration: none;
 }
 header .nav-buttons {
     display: flex;
     gap: 12px;
 }
 
+/*Buttons*/
+.button0, .button1 {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
 .button0 {
     background-color: black;
     color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
 }
 .button0:hover {
     background-color: #2a364a;
-    cursor: pointer;
 }
-
 .button1 {
-    background-color: rgb(255, 255, 255);
-    color: rgb(0, 0, 0);
-    padding: 8px 16px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    background-color: white;
+    color: black;
+    border: 1px solid #d1d5db;
 }
 .button1:hover {
-    background-color: #959fb1;
-    cursor: pointer;
+    background-color: #f3f4f6;
 }
 
+/*Typography*/
 .title{
     font-size: 30px;
     line-height: 36px;
     font-weight: 800;
     margin-bottom: 16px;
 }
-
 .subtitle{
     font-size: 18px; 
     line-height: 28px; 
     margin-bottom: 24px;
 }
-
 .heading{
     font-size: 24px;
     line-height: 32px;
     font-weight: 700;
     margin-bottom: 24px;
 }
-
 .subheading{
     font-size: 20px;
     line-height: 28px;
@@ -85,6 +80,41 @@ header .nav-buttons {
     margin-bottom: 8px;
 }
 
+/*Forms*/
+.input-label {
+    font-size: 14px;        
+    line-height: 20px;        
+    font-weight: 500;           
+    color: #374151;           
+    margin-bottom: 4px;        
+}
+.input-style {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    outline: none;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+.input-style:focus {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px black;
+}
+
+/*Container and Card*/
+.auth-container {
+    background-image: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+}
+.auth-card {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+.feature-box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
 
 .img-placeholder{
     height: 164px;
@@ -96,28 +126,4 @@ hr.solid{
     margin-top: 32px;
     margin-bottom: 32px;
     border-top: 2px solid #dadada;
-}
-
-.input-label {
-    font-size: 14px;        
-    line-height: 20px;        
-    font-weight: 500;           
-    color: #374151;           
-    margin-bottom: 4px;        
-}
-
-.input-style {
-    padding-left: 12px;
-    padding-right: 12px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
-.input-style:focus {
-    border-color: transparent;
-    box-shadow: 0 0 0 2px black;
 }
