@@ -46,26 +46,24 @@
     <hr class="solid">
 
     <!-- How It Works section -->
-    <div class="mb-12">
-        <h2 class="heading">How It Works</h2>
-        <div class="flex justify-between">
-            <div class="feature-box">
-                <h3 class="subheading">Upload a Bill</h3>
-                <p class="mb-4">Snap a photo, drag a PDF or forward an email</p>
-                <div class="img-placeholder"></div>
-            </div>
-            <div class="feature-box">
-                <h3 class="subheading">Get Insights</h3>
-                <p class="mb-4">View breakdowns by cost, usage, and trends</p>
-                <div class="img-placeholder"></div>
-            </div>
-            <div class="feature-box">
-                <h3 class="subheading">Share with your Household!</h3>
-                <p class="mb-4">Share with household members or export reports</p>
-                <div class="img-placeholder"></div>
-            </div>
-        </div>
+  <div class="feature-box">
+    <h3 class="subheading">Upload a Bill</h3>
+    <p class="mb-4">Snap a photo, drag a PDF or forward an email</p>
+    <img src="{{ url_for('static', filename='images/upload-bill.png') }}" alt="Upload a Bill" class="w-full h-auto rounded shadow-md">
+  </div>
+
+  <div class="feature-box">
+    <h3 class="subheading">Get Insights</h3>
+    <p class="mb-4">View breakdowns by cost, usage, and trends</p>
+    <img src="{{ url_for('static', filename='images/get-insights.png') }}" alt="Get Insights" class="w-full h-auto rounded shadow-md">
+  </div>
+
+    <div class="feature-box">
+        <h3 class="subheading">Share with your Household!</h3>
+        <p class="mb-4">Share with household members or export reports</p>
+        <img src="{{ url_for('static', filename='images/share-household.png') }}" alt="Share with Household" class="w-full h-auto rounded shadow-md">
     </div>
+
 
     <hr class="solid">
 
