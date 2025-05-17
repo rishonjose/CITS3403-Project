@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, DateField, FloatField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Optional, Length, ValidationError
 from app.models import User
+from flask_login import current_user
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[
@@ -57,10 +58,15 @@ class RegistrationForm(FlaskForm):
             if not Household.query.filter_by(code=code).first():
                 raise ValidationError("That household code does not exist.")
 
-    def validate_email(self, email):
-        user = User.query.filter_by(email=email.data).first()
-        if user:
-            raise ValidationError('Email already registered. Please use a different email.')
+    def validate_email(self, field):
+        email = field.data.lower().strip()
+        if User.query.filter_by(email=email).first():
+            raise ValidationError('That email is already registered.')
+
+    def validate_username(self, username_field):
+        existing = User.query.filter_by(username=username_field.data.strip()).first()
+        if existing:
+            raise ValidationError("That username is already taken.")
 
 class BillEntryForm(FlaskForm):
     category = SelectField('Category', choices=[
@@ -83,3 +89,33 @@ class BillEntryForm(FlaskForm):
         DataRequired(message="Please select an end date")
     ])
     submit = SubmitField('Submit Bill')
+
+class ProfileForm(FlaskForm):
+    first_name = StringField('First Name', validators=[
+        DataRequired(message="First name is required"),
+        Length(min=1, max=20, message="First name must be between 1-20 characters")
+    ])
+    last_name = StringField('Last Name', validators=[
+        Optional(),
+        Length(max=20, message="Last name must be at most 20 characters")
+    ])
+    email = StringField('Email', validators=[
+        DataRequired(message="Email is required"),
+        Email(message="Invalid email address")
+    ])
+    password = PasswordField('New Password', validators=[
+        Optional(),
+        Length(min=8, message="Password must be at least 8 characters")
+    ])
+    submit = SubmitField('Save Changes')
+
+    def validate_email(self, field):
+        # only run when someone is actually logged in
+        if not getattr(current_user, "is_authenticated", False):
+            return
+
+        new_email = field.data.lower().strip()
+        if new_email != current_user.email:
+            if User.query.filter_by(email=new_email).first():
+                raise ValidationError('Email already in use.')
+
