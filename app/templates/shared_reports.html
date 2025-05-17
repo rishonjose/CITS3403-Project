@@ -29,18 +29,25 @@
 
   <!-- Tailwind for utilities -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='js/stylesheet.css') }}">
 </head>
 
 <body class="min-h-screen flex flex-col">
 
   <!-- HEADER from history.html :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3} -->
-  <div class="header">
-    <div class="logo">Meter</div>
-    <div>
-      <a href="{{ url_for('visualise_data') }}" class="button">Dashboard</a>
-      <a href="{{ url_for('profile') }}"        class="button">My Profile</a>
+  <header class="nav">
+    <a href="/" class="logo">Meter</a>
+    <div class="flex space-x-4">
+        {% if current_user.is_authenticated %}
+    <a href="{{ url_for('visualise_data') }}" class="button0"> Dashboard</a>
+    <a href="{{ url_for('uploadpage') }}" class="button0"> Upload</a>
+    <a href="{{ url_for('profile') }}" class="button0">My Profile</a>
+    <a href="{{ url_for('logout') }}" class="button1">Logout</a>
+    {% else %}
+        <a href="{{ url_for('login') }}" class="button0">Login</a>
+    {% endif %}
     </div>
-  </div>
+</header>
 
   <!-- MAIN CONTENT -->
   <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6">

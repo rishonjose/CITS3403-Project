@@ -32,17 +32,26 @@
     Chart.defaults.responsive = true;
     Chart.defaults.maintainAspectRatio = false;
   </script>
+  
+  <link rel="stylesheet" href="{{ url_for('static', filename='js/stylesheet.css') }}">
 </head>
 <body>
   <div class="container my-4">
-    <header class="d-flex justify-content-between align-items-center mb-4">
-      <h1>Shared Report Analytics</h1>
-      <nav>
-        <a href="/dashboard" class="btn btn-outline-primary me-2">Dashboard</a>
-        <a href="/profile" class="btn btn-outline-secondary">My Profile</a>
-      </nav>
-    </header>
-
+      <!-- Navbar -->
+  <header class="nav">
+      <a href="/" class="logo">Meter</a>
+      <div class="flex space-x-4">
+          {% if current_user.is_authenticated %}
+      <a href="{{ url_for('visualise_data') }}" class="button0"> Dashboard</a>
+      <a href="{{ url_for('uploadpage') }}" class="button0"> Upload</a>
+      <a href="{{ url_for('profile') }}" class="button0">My Profile</a>
+      <a href="{{ url_for('logout') }}" class="button1">Logout</a>
+      {% else %}
+          <a href="{{ url_for('login') }}" class="button0">Login</a>
+      {% endif %}
+      </div>
+  </header>
+  <h1>Shared Report Analytics</h1>
     <!-- Overview Section -->
     <section class="mb-5">
       <h2>Overview</h2>
