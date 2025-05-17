@@ -59,10 +59,11 @@
             <div class="flex-shrink-0">
             <div class="relative">
                 <img
-                src="{{ user.profile_picture_url or url_for('static', filename='images/default-avatar-icon.jpg') }}"
+                src="{{ current_user.profile_picture_url or url_for('static', filename='images/default-avatar-icon.jpg') }}"
                 alt="Profile Picture"
                 class="w-32 h-32 rounded-full border-4 border-gray-200 object-cover"
                 >
+
                 <button
                 class="absolute bottom-0 right-0 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-900 transition"
                 >
@@ -71,40 +72,25 @@
             </div>
             </div>
 
-            <!-- Info + Code -->
-            <div class="flex-1">
-            <!-- Name and Code inline, far right -->
-            <div class="flex justify-between items-baseline">
-                <h1 class="text-3xl font-bold text-gray-800">{{ user.name }}</h1>
-                {% if session.get('household_code') %}
-                <span class="text-3xl font-bold text-gray-800">
-                Code: {{ session.household_code }}
-                </span>
-                {% endif %}
-            </div>
-
-            <!-- Email -->
-            <p class="text-gray-600 mt-2">{{ user.email }}</p>
-
-            <!-- Edit button -->
-            <div class="mt-4">
-                <button class="px-4 py-2 bg-gray-800 text-white rounded-full hover:bg-gray-900 transition">
-                Edit Profile
-                </button>
-            </div>
-            </div>
+      <!-- Info + Code -->
+      <div class="flex-1">
+        <div class="flex justify-between items-baseline">
+          <!-- Username on the left -->
+          <div>
+            <h1 class="text-3xl font-bold text-gray-800">{{ current_user.username }}</h1>
+            <p class="text-gray-600 mt-1">{{ current_user.email }}</p>
+          </div>
+          {% if session.get('household_code') %}
+          <span class="text-3xl font-bold text-gray-800">
+            Code: {{ session.household_code }}
+          </span>
+          {% endif %}
         </div>
 
-        <!-- About Me section -->
-        <div class="mt-8 pt-8 border-t border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">About Me</h2>
-            <p class="text-gray-700">{{ user.bio or "Tell us about yourself..." }}</p>
-        </div>
-        </div>
 
 
       <!-- Family Members Section -->
-      <div id="family-section" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+      <div id="family-section" class="bg-white rounded-2xl shadow-lg p-8 mb-8 mt-16">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-800">
             My Family {%- if session.get('household_code') %} &ndash; {{ session.get('household_code') }} {%- endif %}
@@ -177,32 +163,46 @@
       <!-- Account Settings Section -->
       <div class="bg-white rounded-2xl shadow-lg p-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Account Settings</h2>
-        <form class="space-y-6">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <form method="POST" action="{{ url_for('profile') }}" class="space-y-6">
+          {{ form.hidden_tag() }}
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-gray-700 mb-2">First Name</label>
-              <input type="text" value="{{ user.first_name }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+              {{ form.first_name.label(class="block text-gray-700 mb-2") }}
+              {{ form.first_name(class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-800") }}
+              {% if form.first_name.errors %}
+                <p class="text-red-500 text-sm">{{ form.first_name.errors[0] }}</p>
+              {% endif %}
             </div>
             <div>
-              <label class="block text-gray-700 mb-2">Last Name</label>
-              <input type="text" value="{{ user.last_name }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+              {{ form.last_name.label(class="block text-gray-700 mb-2") }}
+              {{ form.last_name(class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-800") }}
+              {% if form.last_name.errors %}
+                <p class="text-red-500 text-sm">{{ form.last_name.errors[0] }}</p>
+              {% endif %}
             </div>
           </div>
+
           <div>
-            <label class="block text-gray-700 mb-2">Email Address</label>
-            <input type="email" value="{{ user.email }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+            {{ form.email.label(class="block text-gray-700 mb-2") }}
+            {{ form.email(class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-800") }}
+            {% if form.email.errors %}
+              <p class="text-red-500 text-sm">{{ form.email.errors[0] }}</p>
+            {% endif %}
           </div>
+
           <div>
-            <label class="block text-gray-700 mb-2">Password</label>
-            <input type="password" placeholder="Enter new password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+            {{ form.password.label(class="block text-gray-700 mb-2") }}
+            {{ form.password(class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-800", placeholder="Enter new password") }}
+            {% if form.password.errors %}
+              <p class="text-red-500 text-sm">{{ form.password.errors[0] }}</p>
+            {% endif %}
           </div>
-          <div class="flex justify-end">
-            <button type="submit" class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">Save Changes</button>
-          </div>
+
+          {{ form.submit(class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition") }}
         </form>
       </div>
-    </div>
+
 
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-6 mt-12">
@@ -215,4 +215,5 @@
   <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 </body>
 </html>
+
 
