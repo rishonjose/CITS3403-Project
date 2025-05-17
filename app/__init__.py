@@ -1,54 +1,56 @@
 import os
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_login import LoginManager
-from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
-from app.config import Config
-import os
+from app.extensions import db, migrate, login, csrf
 
-load_dotenv() # Load environment variables
-application = Flask(__name__) # Create application instance and apply configuration
+load_dotenv()  # Load environment variables
 
-application.config.from_object(Config)
-if not application.config.get('SECRET_KEY'):
-    raise ValueError("SECRET_KEY not configured! Check .env and config.py")
+def create_app(config_class=None):
+    app = Flask(__name__)
+    
+    # Use passed config or fallback
+    if config_class is None:
+        from app.config import Config
+        config_class = Config
 
-# Initialize extensions
-db = SQLAlchemy()
-migrate = Migrate()
-login = LoginManager()
-csrf = CSRFProtect(application)
+    app.config.from_object(config_class)
 
-# Configure login manager
-login.login_view = 'login'
-login.session_protection = 'strong'
+    if not app.config.get('SECRET_KEY'):
+        raise ValueError("SECRET_KEY not configured! Check .env and config.py")
 
-# Configure database
-application.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-application.config["OAUTHLIB_INSECURE_TRANSPORT"] = True  # Dev only
+    if not app.config.get('SQLALCHEMY_DATABASE_URI'):
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 
-# ——— file upload settings ———
-# uploads go into app/uploads/
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config["OAUTHLIB_INSECURE_TRANSPORT"] = True  # Dev only
 
-application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-application.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # optional: limit uploads to 16MB
+    # File upload settings
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# initialize extensions
-db.init_app(application)
-migrate.init_app(application, db)
-login.init_app(application)
-csrf.init_app(application)
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 
-# Import routes and models AFTER initializations
-from app import routes, models
+    # Initialize extensions
+    db.init_app(app)
+    migrate.init_app(app, db)
+    login.init_app(app)
+    csrf.init_app(app)
 
-# User loader callback
-@login.user_loader
-def load_user(user_id):
-    return models.User.query.get(int(user_id))
+    login.login_view = 'login'
+    login.session_protection = 'strong'
+
+    # Import models here to avoid circular import
+    from app.models import User
+
+    @login.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+    # Import and register routes after extensions are ready
+    from app.routes import google_bp, register_routes
+    app.register_blueprint(google_bp, url_prefix="/login/google")
+    register_routes(app)
+
+    return app
