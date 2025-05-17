@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, DateField, FloatField, SelectField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, Optional, Length, ValidationError
 from app.models import User
 
 class LoginForm(FlaskForm):
@@ -30,8 +30,32 @@ class RegistrationForm(FlaskForm):
         DataRequired(message="Please confirm your password"),
         EqualTo('password', message="Passwords must match")
     ])
-    role = SelectField('Role', choices=[('user', 'User'), ('admin', 'Admin')], validators=[DataRequired()])
+
+    # ← New role field
+    role = SelectField('Role', choices=[
+        ('user',  'User'),
+        ('admin', 'Admin')
+    ], default='user', validators=[DataRequired()])
+    
+    household_code = StringField(
+        'Household Code',
+        validators=[
+            Optional(),
+            Length(min=0, max=16, message="Code must be at most 16 characters")
+        ]
+    )
+
     submit = SubmitField('Sign Up')
+    
+    def validate_household_code(self, field):
+        # if they chose “member” they must supply a valid code
+        if self.role.data == 'member':
+            code = (field.data or "").strip().upper()
+            if not code:
+                raise ValidationError("Household code is required for members.")
+            from app.models import Household
+            if not Household.query.filter_by(code=code).first():
+                raise ValidationError("That household code does not exist.")
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()

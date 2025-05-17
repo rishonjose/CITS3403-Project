@@ -1,5 +1,7 @@
 import re
 from pdfminer.high_level import extract_text
+import random, string
+from app.models import Household
 
 def parse_pdf_bill(path):
     """
@@ -22,3 +24,13 @@ def parse_pdf_bill(path):
         "start_date":  period_match.group(1)                             if period_match else None,
         "end_date":    period_match.group(2)                             if period_match else None,
     }
+
+def generate_unique_code(length: int = 8) -> str:
+    """
+    Produce an uppercase alphanumeric code of given length
+    that doesn’t collide with any existing Household.code.
+    """
+    while True:
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+        if not Household.query.filter_by(code=code).first():
+            return code

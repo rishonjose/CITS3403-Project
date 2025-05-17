@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import Optional
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer, Float, Date, DateTime, ForeignKey
 from . import db
 from flask import url_for
@@ -41,15 +42,14 @@ class User(db.Model, UserMixin):
     username: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(128), nullable=True)
-    profile_pic: Mapped[str] = mapped_column(String(256))
+    profile_pic: Mapped[Optional[str]] = mapped_column(String(256), nullable=True, server_default='images/default-avatar-icon.jpg')
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
+    role: Mapped[str] = mapped_column(String(20), nullable=False, server_default='user')
+    household_code: Mapped[Optional[str]] = mapped_column(String(8), unique=False, nullable=True)
+    household_id: Mapped[Optional[int]] = mapped_column(ForeignKey('households.id', ondelete='SET NULL'), nullable=True)
     
-    entries = db.relationship(
-        'BillEntry',
-        backref='user',
-        lazy='dynamic',
-        cascade='all, delete-orphan'
-    )
+    # relationships
+    entries = db.relationship('BillEntry', backref='user', lazy='dynamic', cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -87,6 +87,7 @@ class Household(db.Model):
     __tablename__ = 'households'
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str]  = mapped_column(String(8), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     created_by: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
