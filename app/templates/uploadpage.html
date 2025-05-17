@@ -353,23 +353,6 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="category" id="form-category" value="Electricity" />
 
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="mb-4">
-            {% for category, message in messages %}
-              <div class="p-3 rounded text-sm font-medium text-white
-              {% if category == 'success' %} bg-green-500
-              {% elif category == 'error' %} bg-red-500
-              {% elif category == 'info' %} bg-blue-500
-              {% else %} bg-gray-500 {% endif %}">
-              {{ message }}
-              </div>
-            {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-
         <!-- Units Field -->
         <div class="form-group">
           <img id="icon-one" src="{{ url_for('static', filename='images/bolt-icon.svg') }}" alt="Icon" />
