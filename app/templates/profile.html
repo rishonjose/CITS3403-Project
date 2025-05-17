@@ -1,183 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .family-member {
-            transition: all 0.3s ease;
-        }
-        .family-member:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        .family-member.dragging {
-            opacity: 0.8;
-            transform: scale(1.02);
-        }
-        .delete-zone {
-            transition: all 0.3s ease;
-        }
-        .delete-zone.active {
-            background-color: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.5);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .family-member {
+      transition: all 0.3s ease;
+    }
+    .family-member:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .family-member.dragging {
+      opacity: 0.8;
+      transform: scale(1.02);
+    }
+    .delete-zone {
+      transition: all 0.3s ease;
+    }
+    .delete-zone.active {
+      background-color: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+  </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='js/stylesheet.css') }}">
 </head>
-
 <body class="bg-gray-100 font-sans">
     <div class="min-h-screen flex flex-col">
         <!-- Navbar -->
         <header class="nav">
             <a href="/" class="logo">Meter</a>
             <div class="flex space-x-4">
-                <a href="#family-section" class="button0">My Family</a>
+                <a href="{{ url_for('visualise_data') }}" class="button0">Dashboard</a>
                 <a href="/logout" class="button1">Logout</a>
             </div>
         </header>
 
         <!-- Main Content -->
         <div class="container mx-auto px-4 py-8 flex-1">
-            <!-- Profile Section -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-                <div class="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
-                    <div class="relative">
-                        <img src="{{ user.profile_picture_url or url_for('static', filename='images/default-avatar-icon.jpg') }}" alt="Profile Picture" 
-                             class="w-32 h-32 rounded-full border-4 border-gray-200 object-cover">
-                        <button class="absolute bottom-0 right-0 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-900 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="text-center md:text-left">
-                        <h1 class="text-3xl font-bold text-gray-800">{{ user.name }}</h1>
-                        <p class="text-gray-600 mt-2">{{ user.email }}</p>
-                        <div class="mt-4">
-                            <button class="button0">
-                                Edit Profile
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-8 pt-8 border-t border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">About Me</h2>
-                    <p class="text-gray-700">{{ user.bio or "Tell us about yourself..." }}</p>
-                </div>
+
+        <!-- Profile Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <div class="flex flex-col md:flex-row md:items-start md:space-x-6">
+
+            <!-- Avatar -->
+            <div class="flex-shrink-0">
+            <div class="relative">
+                <img
+                src="{{ user.profile_picture_url or url_for('static', filename='images/default-avatar-icon.jpg') }}"
+                alt="Profile Picture"
+                class="w-32 h-32 rounded-full border-4 border-gray-200 object-cover"
+                >
+                <button
+                class="absolute bottom-0 right-0 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-900 transition"
+                >
+                <!-- camera icon SVG -->
+                </button>
+            </div>
             </div>
 
-            <!-- Family Members Section -->
-            <div id="family-section" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">My Family</h2>
-                    <button id="add-family-member" class="flex items-center justify-center w-10 h-10 bg-green-500 text-white rounded-full hover:bg-green-600 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- Add New Member Form (Hidden by default) -->
-                <div id="new-member-form" class="hidden bg-gray-50 p-6 rounded-xl mb-6">
-                    <h3 class="text-lg font-medium text-gray-800 mb-4">Add Family Member</h3>
-                    <form id="add-member-form" class="space-y-4">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-gray-700 mb-1">First Name</label>
-                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 mb-1">Last Name</label>
-                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 mb-1">Email</label>
-                            <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
-                        </div>
-                        <div class="flex justify-end space-x-3">
-                            <button type="button" id="cancel-add-member" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cancel</button>
-                            <button type="submit" class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">Add Member</button>
-                        </div>
-                    </form>
-                </div>
-                
-                <!-- Family Members List -->
-                <div id="family-members-container" class="space-y-4">
-                    <!-- Sample family member (will be generated dynamically) -->
-                    <div class="family-member relative bg-gray-50 p-4 rounded-xl flex items-center justify-between cursor-move" draggable="true">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-                                <span class="text-lg font-medium">JD</span>
-                            </div>
-                            <div>
-                                <h3 class="font-medium text-gray-800">John Doe</h3>
-                                <p class="text-sm text-gray-500">Shared access</p>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button class="edit-member p-2 text-gray-500 hover:text-gray-700">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Delete Zone (appears when dragging) -->
-                <div id="delete-zone" class="delete-zone hidden mt-6 p-4 border-2 border-dashed border-gray-300 rounded-xl text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <p class="mt-2 text-red-500">Drag here to delete</p>
-                </div>
+            <!-- Info + Code -->
+            <div class="flex-1">
+            <!-- Name and Code inline, far right -->
+            <div class="flex justify-between items-baseline">
+                <h1 class="text-3xl font-bold text-gray-800">{{ user.name }}</h1>
+                {% if session.get('household_code') %}
+                <span class="text-3xl font-bold text-gray-800">
+                Code: {{ session.household_code }}
+                </span>
+                {% endif %}
             </div>
 
-            <!-- Account Settings Section -->
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Account Settings</h2>
-                <form class="space-y-6">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block input-label">First Name</label>
-                            <input type="text" value="{{ user.first_name }}" class="w-full input-style">
-                        </div>
-                        <div>
-                            <label class="block input-label">Last Name</label>
-                            <input type="text" value="{{ user.last_name }}" class="w-full input-style">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block input-label">Email Address</label>
-                        <input type="email" value="{{ user.email }}" class="w-full input-style">
-                    </div>
-                    <div>
-                        <label class="block input-label">Password</label>
-                        <input type="password" placeholder="Enter new password" class="w-full input-style">
-                    </div>
-                    <div class="flex justify-end">
-                        <button type="submit" class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">Save Changes</button>
-                    </div>
-                </form>
+            <!-- Email -->
+            <p class="text-gray-600 mt-2">{{ user.email }}</p>
+
+            <!-- Edit button -->
+            <div class="mt-4">
+                <button class="button0">
+                Edit Profile
+                </button>
+            </div>
             </div>
         </div>
 
-        <!-- Footer -->
-        <footer class="bg-gray-900 text-white py-6 mt-12">
-            <div class="container mx-auto px-4 text-center">
-                <p>&copy; 2023 Meter. All rights reserved.</p>
+        <!-- About Me section -->
+        <div class="mt-8 pt-8 border-t border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">About Me</h2>
+            <p class="text-gray-700">{{ user.bio or "Tell us about yourself..." }}</p>
+        </div>
+        </div>
+
+
+      <!-- Family Members Section -->
+      <div id="family-section" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">
+            My Family {%- if session.get('household_code') %} &ndash; {{ session.get('household_code') }} {%- endif %}
+          </h2></h2>
+          <button id="add-family-member" class="flex items-center justify-center w-10 h-10 bg-green-500 text-white rounded-full hover:bg-green-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Add New Member Form (Hidden by default) -->
+        <div id="new-member-form" class="hidden bg-gray-50 p-6 rounded-xl mb-6">
+          <h3 class="text-lg font-medium text-gray-800 mb-4">Add Family Member</h3>
+          <form id="add-member-form" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-gray-700 mb-1">First Name</label>
+                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-1">Last Name</label>
+                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+              </div>
             </div>
-        </footer>
+            <div>
+              <label class="block text-gray-700 mb-1">Email</label>
+              <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+            </div>
+            <div class="flex justify-end space-x-3">
+              <button type="button" id="cancel-add-member" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cancel</button>
+              <button type="submit" class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">Add Member</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Family Members List -->
+        <div id="family-members-container" class="space-y-4">
+          <!-- Sample family member (will be generated dynamically) -->
+          <div class="family-member relative bg-gray-50 p-4 rounded-xl flex items-center justify-between cursor-move" draggable="true">
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
+                <span class="text-lg font-medium">JD</span>
+              </div>
+              <div>
+                <h3 class="font-medium text-gray-800">John Doe</h3>
+                <p class="text-sm text-gray-500">Shared access</p>
+              </div>
+            </div>
+            <div class="flex space-x-2">
+              <button class="edit-member p-2 text-gray-500 hover:text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delete Zone (appears when dragging) -->
+        <div id="delete-zone" class="delete-zone hidden mt-6 p-4 border-2 border-dashed border-gray-300 rounded-xl text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          <p class="mt-2 text-red-500">Drag here to delete</p>
+        </div>
+      </div>
+
+      <!-- Account Settings Section -->
+      <div class="bg-white rounded-2xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Account Settings</h2>
+        <form class="space-y-6">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block input-label">First Name</label>
+              <input type="text" value="{{ user.first_name }}" class="w-full input-style">
+            </div>
+            <div>
+              <label class="block input-label">Last Name</label>
+              <input type="text" value="{{ user.last_name }}" class="w-full input-style">
+            </div>
+          </div>
+          <div>
+            <label class="block input-label">Email Address</label>
+            <input type="email" value="{{ user.email }}" class="w-full input-style">
+          </div>
+          <div>
+            <label class="block input-label">Password</label>
+            <input type="password" placeholder="Enter new password" class="w-full input-style">
+          </div>
+          <div class="flex justify-end">
+            <button type="submit" class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">Save Changes</button>
+          </div>
+        </form>
+      </div>
     </div>
 
-    <script src="{{ url_for('static', filename='profile.js') }}"></script>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-6 mt-12">
+      <div class="container mx-auto px-4 text-center">
+        <p>&copy; 2023 Meter. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 </body>
 </html>
+
