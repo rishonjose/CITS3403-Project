@@ -33,7 +33,7 @@
     /* ========== HEADER / HERO ========== */
     header.hero {
       position: relative;
-      background: url('{{ url_for('static', filename='images/upload-page-backdrop.jpg') }}') center/cover no-repeat;
+      background: url("{{ url_for('static', filename='images/upload-page-backdrop.jpg') }}") center/cover no-repeat;
       color: var(--brand-white);
       padding: 2rem 1rem;
       text-align: center;
@@ -272,10 +272,10 @@
       display: inline-block;
       background-size: cover;
     }
-    .social .fb { background-image: url('{{ url_for('static', filename='images/fb.svg') }}'); }
-    .social .linkedin { background-image: url('{{ url_for('static', filename='images/linkedin.svg') }}'); }
-    .social .yt { background-image: url('{{ url_for('static', filename='images/youtube.svg') }}'); }
-    .social .ig { background-image: url('{{ url_for('static', filename='images/instagram.svg') }}'); }
+    .social .fb { background-image: url("{{ url_for('static', filename='images/fb.svg') }}"); }
+    .social .linkedin { background-image: url("{{ url_for('static', filename='images/linkedin.svg') }}"); }
+    .social .yt { background-image: url("{{ url_for('static', filename='images/youtube.svg') }}"); }
+    .social .ig { background-image: url("{{ url_for('static', filename='images/instagram.svg') }}"); }
   </style>
   <link rel="stylesheet" href="{{ url_for('static', filename='js/stylesheet.css') }}">
 </head>
